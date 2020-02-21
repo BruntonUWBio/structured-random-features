@@ -1,0 +1,159 @@
+\documentclass[11pt,letterpaper]{article}
+
+%%%%% USER CONFIGURATION %%%%%
+\newcommand{\userName}{Biraj Pandey}
+\newcommand{\userId}{Biraj}
+\newcommand{\department}{Department of Applied Mathematic}
+\newcommand{\institution}{University of Washington}
+\newcommand{\projectNameShort}{Kernel Learning}
+\newcommand{\projectNameLong}{We are trying to understand sparse random networks from the perspective of kernels.}
+
+% Cast
+\newcommand{\Yury}[1]{\textbf{Yury (#1):}}
+\newcommand{\Anton}[1]{\textbf{Anton (#1):}}
+\newcommand{\Me}[1]{\textbf{\userId\ (#1):}}
+
+\newif\ifLISTINGS
+\newif\ifALGORITHMS
+\newif\ifTiKZ
+% Toggles, set to false if not needed since it will speed up the compilation
+\LISTINGSfalse   % LISTINGS toggle
+\ALGORITHMStrue % ALGORITHMS toggle
+\TiKZfalse       % TiKZ toggle
+
+% you need to download macros from here
+% https://github.com/aksholokhov/latex-macros
+\input{latex-macros/useful_packages}
+\input{latex-macros/math_macros}
+
+%%%%%%%%%%%%%%%
+% PAGE FORMAT %
+%%%%%%%%%%%%%%%
+
+\pagestyle{fancy}
+\setlength\parindent{0in}
+\setlength\parskip{0.1in}
+\setlength\headheight{15pt}
+
+%%%%%%%%%%% HEADER / FOOTER %%%%%%%%%%%
+\chead{\textit{\projectNameShort}}
+\lhead{\textsc{\userName}}
+\rhead{\textsc{Research Diary}}
+\rfoot{}
+\cfoot{\color{gray} \textsc{\thepage~/~\pageref*{LastPage}}}
+\lfoot{}
+
+% University Logo
+\newcommand{\univlogo}{%
+  \noindent % University Logo
+  \begin{wrapfigure}{r}{0.31\textwidth}
+    \vspace{-24pt}
+    \begin{center}
+      \includegraphics[width=0.31\textwidth]{Images/univ-logo.jpg}
+    \end{center}
+    \vspace{-10pt}
+  \end{wrapfigure}
+}
+
+\renewcommand{\thesection}{\Roman{section}}
+% \renewcommand{\thesubsection}{\thesection.\Roman{subsection}}
+
+%%%%%%%%%%%%
+% CAPTIONS %
+%%%%%%%%%%%%
+
+%%%% Paragraph separation
+%\setlength{\parskip}{.5em}
+
+\numberwithin{equation}{section} % Number equations within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
+\numberwithin{figure}{section} % Number figures within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
+\numberwithin{table}{section} % Number tables within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
+
+%%%%%%%%%%%%
+% DOCUMENT %
+%%%%%%%%%%%%
+
+\begin{document}
+\title{Research Diary}
+\univlogo
+{\Huge \projectNameShort}\\[2mm]
+
+%\vspace{1em}
+{\large \underline{\textbf{\uppercase{\projectNameLong}}}}\\
+
+\section*{Log}
+\textit{Last modified: \today}
+\begin{itemize}
+	\item 01/10/20 -- Had a meeting with Bing and Kam. We discussed some concrete kernel assignments to do for next week as well as some preliminary reading for PDE find.
+    \item 6/3/19 -- Started figuring out how to implement the optimization subproblem. 
+\end{itemize}
+
+\section*{Plan}
+LEGEND: Backlog, \textbf{In progress}, \sout{Done}, \cancelled{Cancelled}, \textit{Comments and results}
+\begin{enumerate}
+%    \item \cancelled{Find data}
+%    \item \sout{Figure out the Einstein Algorithm}
+%    \item Make it work for simple synthetic data
+%        \begin{itemize}
+%            \item Check that plots look appropriate 
+%        \end{itemize}
+%    \item Make some tests
+	\item \sout{Read and present the 3 Rahimi Recht papers \cite{RahimiRecht2008UniformApprox}, \cite{RahimiRecht2009KitchenSinks}, \cite{RahimiRecht2008RandomFeatures}}
+\end{enumerate}
+
+\listoftodos
+
+\newpage
+
+\section*{Introduction} 
+We want to use random features \cite{RahimiRecht2008RandomFeatures} for greater good. 
+
+\section{Background Reading}
+\lowtodo{Do a written report of the 3 Rahimi Recht papers}
+\hightodo{Read these papers \cite{Alber2017EmpKernels}}
+
+\hightodo{Code up the kernel assignment.}
+\begin{itemize}
+	\item Code up a random fourier features for the gaussian kernel $e^{\|x - x'\|^2/(2 \sigma^2)}$ and the arc-cosine kernel
+	\item Pick a dataset and produce a loss curve (error vs regularizer) using both these kernels
+	\item Verify the $\frac{1}{\sqrt{K}}$ convergence rate for the kernel approximation. One can do this by comparing the actual kernel matrix $K$ and the $\hat{K}$ obtained from the approximation.
+\end{itemize}
+ 
+
+\section{Dataset and Preprocessing} % (fold)
+\label{sec:dataset_and_preprocessing}
+
+\begin{tip}My advisor told me to ask people from the lab\end{tip}
+
+\subsection{Preprocessing} % (fold)
+\label{sub:preprocessing}
+
+\section{Methods} % (fold)
+\label{sec:methods}
+
+\subsection{Algorithms} % (fold)
+\label{sub:algorithms}
+
+\section{Results} % (fold)
+\label{sec:results}
+
+\subsection{Figures} % (fold)
+\label{sub:figures}
+
+% subsection figures (end)
+
+\subsection{Tables} 
+
+
+%----------------------------------------------------------------------------------------
+%   REFERENCE LIST
+%----------------------------------------------------------------------------------------
+\clearpage
+\appendix
+\section{Resources}
+
+\bibliographystyle{alpha}
+\bibliography{bibliography}
+\clearpage
+
+\end{document}
