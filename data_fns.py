@@ -29,7 +29,7 @@ def lowpass_filter(data, lowcut, fs, order=2):
     return signal.filtfilt(b, a, data)
 
 
-def noisy_sin_signal(f_s=2000, dur=10, f_signal=40, sig_dur=0.05, a=1, seed=2):
+def noisy_sin_signal(f_s=2000, dur=10, f_signal=40, sig_dur=0.05, a=1, seed=None):
     '''
     Generate a time series of random noise interspersed with periods where a sinusoidal signal is on
     
@@ -48,7 +48,8 @@ def noisy_sin_signal(f_s=2000, dur=10, f_signal=40, sig_dur=0.05, a=1, seed=2):
     time_series: an array of shape (f_s * dur, 1)
     labels: array with binary values (0, 1) shape (f_s * dur, )
     '''
-    np.random.seed(seed)
+    if seed is not None:
+        np.random.seed(seed)
     
     if a < 0 or a > 1:
         raise ValueError('a should be between 0 and 1')

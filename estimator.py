@@ -21,7 +21,7 @@ class RFClassifier(BaseEstimator, ClassifierMixin):
     """
     
     def __init__(self, width=500, weights='white noise', nonlinearity=relu, clf=None, weight_fun=None, clf_args={}, 
-                 seed=20):
+                 seed=None):
         self.width = width
         self.weights = weights
         self.nonlinearity = nonlinearity
@@ -35,7 +35,10 @@ class RFClassifier(BaseEstimator, ClassifierMixin):
         if X.shape[0] != y.shape[0]:
             raise ValueError('dimension mismatch')
         n = X.shape[1]
-
+        
+        if self.seed is None:
+            self.seed = np.random.randint(1000)
+    
         if self.clf is None:
             self.clf = LinearSVC(random_state=self.seed, tol=1e-4, max_iter=1000)
         else:
@@ -69,7 +72,7 @@ def gaussian(X, mu, sigma):
     return np.exp(-np.abs(mu - X) ** 2/ (2 * sigma **2))
 
 
-def random_feature_matrix(M, N, weights='white noise', rand_seed=20):
+def random_feature_matrix(M, N, weights='white noise', rand_seed=None):
     ''' 
     Generate a size (M, N) random matrix from the specified distribution
     
@@ -85,18 +88,18 @@ def random_feature_matrix(M, N, weights='white noise', rand_seed=20):
     If 'white noise', entries are drawn ~ N(0, 1).
     Or can be a function handle taking arguments (M, N)
     '''
-    
-    from numpy.random import randn, uniform, seed
-    
-    seed(rand_seed)
+    if rand_seed is None:
+        rand_seed = np.random.randint(1000)
+    np.random.seed(rand_seed)
+
     if weights == 'unimodal':
-        mu = uniform(0, N, (M, 1))
-        sigma = uniform(0.1, N/4, (M, 1))
+        mu = np.random.uniform(0, N, (M, 1))
+        sigma = np.random.uniform(0.1, N/4, (M, 1))
         k = np.arange(0, N)
         J = np.array([gaussian(k, m, s) for (m, s) in zip(mu, sigma)]) * np.random.randint(1, 20, (M, 1))
 
     elif weights == 'white noise':
-        J = randn(M, N)
+        J = np.random.randn(M, N)
     
     elif weights is None:
         J = np.eye(N, N)
