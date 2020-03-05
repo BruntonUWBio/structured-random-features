@@ -56,7 +56,7 @@ def noisy_sin_signal(f_s=2000, dur=10, f_signal=40, sig_dur=0.05, a=1, seed=None
     n_amp = np.sqrt(1 - a ** 2) 
     
     t_points = np.arange(0, dur, 1/f_s)
-    t_series = np.random.normal(0, a /2  , dur * f_s) + np.random.normal(0, n_amp/2, dur * f_s)
+    t_series = np.random.normal(0, 1, dur * f_s)
     label = np.zeros(len(t_series))
     
     d = int(sig_dur * f_s) # array len of signal
@@ -64,7 +64,7 @@ def noisy_sin_signal(f_s=2000, dur=10, f_signal=40, sig_dur=0.05, a=1, seed=None
     idx = np.random.choice(p, int(dur / (2 * sig_dur)), replace=False)
     for i in idx:
         t = t_points[i:i + d]
-        t_series[i:i + d] = a / 2 * np.sin(2 * np.pi * f_signal * t) + np.random.normal(0, n_amp / 2, len(t))
+        t_series[i:i + d] = np.sqrt(2) * a * np.sin(2 * np.pi * f_signal * t) + n_amp * np.random.randn(len(t))
         label[i:i + d] = 1
     return t_series, label
 
