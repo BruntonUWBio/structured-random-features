@@ -6,7 +6,7 @@
 \newcommand{\department}{Department of Applied Mathematic}
 \newcommand{\institution}{University of Washington}
 \newcommand{\projectNameShort}{Kernel Learning}
-\newcommand{\projectNameLong}{We are trying to understand sparse random networks from the perspective of kernels.}
+\newcommand{\projectNameLong}{We are trying to derive an algorithm for time series classification using random features.}
 
 % Cast
 \newcommand{\Yury}[1]{\textbf{Yury (#1):}}
@@ -83,23 +83,23 @@
 
 \section*{Log}
 \textit{Last modified: \today}
-\begin{itemize}
-	\item 01/10/20 -- Had a meeting with Bing and Kam. We discussed some concrete kernel assignments to do for next week as well as some preliminary reading for PDE find.
-    \item 6/3/19 -- Started figuring out how to implement the optimization subproblem. 
-\end{itemize}
+%\begin{itemize}
+%	\item 01/10/20 -- Had a meeting with Bing and Kam. We discussed some concrete kernel assignments to do for next week as well as some preliminary reading for PDE find.
+%    \item 6/3/19 -- Started figuring out how to implement the optimization subproblem. 
+%\end{itemize}
 
 \section*{Plan}
 LEGEND: Backlog, \textbf{In progress}, \sout{Done}, \cancelled{Cancelled}, \textit{Comments and results}
-\begin{enumerate}
-%    \item \cancelled{Find data}
-%    \item \sout{Figure out the Einstein Algorithm}
-%    \item Make it work for simple synthetic data
-%        \begin{itemize}
-%            \item Check that plots look appropriate 
-%        \end{itemize}
-%    \item Make some tests
-	\item \sout{Read and present the 3 Rahimi Recht papers \cite{RahimiRecht2008UniformApprox}, \cite{RahimiRecht2009KitchenSinks}, \cite{RahimiRecht2008RandomFeatures}}
-\end{enumerate}
+%\begin{enumerate}
+%%    \item \cancelled{Find data}
+%%    \item \sout{Figure out the Einstein Algorithm}
+%%    \item Make it work for simple synthetic data
+%%        \begin{itemize}
+%%            \item Check that plots look appropriate 
+%%        \end{itemize}
+%%    \item Make some tests
+%	\item \sout{Read and present the 3 Rahimi Recht papers \cite{RahimiRecht2008UniformApprox}, \cite{RahimiRecht2009KitchenSinks}, \cite{RahimiRecht2008RandomFeatures}}
+%\end{enumerate}
 
 \listoftodos
 
@@ -109,16 +109,9 @@ LEGEND: Backlog, \textbf{In progress}, \sout{Done}, \cancelled{Cancelled}, \text
 We want to use random features \cite{RahimiRecht2008RandomFeatures} for greater good. 
 
 \section{Background Reading}
-\lowtodo{Do a written report of the 3 Rahimi Recht papers}
-\hightodo{Read these papers \cite{Alber2017EmpKernels}}
+%\lowtodo{Do a written report of the 3 Rahimi Recht papers}
+%\hightodo{Code up the kernel assignment.}
 
-\hightodo{Code up the kernel assignment.}
-\begin{itemize}
-	\item Code up a random fourier features for the gaussian kernel $e^{\|x - x'\|^2/(2 \sigma^2)}$ and the arc-cosine kernel
-	\item Pick a dataset and produce a loss curve (error vs regularizer) using both these kernels
-	\item Verify the $\frac{1}{\sqrt{K}}$ convergence rate for the kernel approximation. One can do this by comparing the actual kernel matrix $K$ and the $\hat{K}$ obtained from the approximation.
-\end{itemize}
- 
 
 \section{Dataset and Preprocessing} % (fold)
 \label{sec:dataset_and_preprocessing}
@@ -130,6 +123,56 @@ We want to use random features \cite{RahimiRecht2008RandomFeatures} for greater 
 
 \section{Methods} % (fold)
 \label{sec:methods}
+We want to construct a method to extract features from time series data. The input time series data will be convolved with specialized filters to generate these features. The extract features will be passed onto a linear SVM for classification. 
+
+First, we will go through the construction of the filters. Our filters are constructed through band passed white noise where the bandwidth is informed by prior information from the data. Given white noise of length T sampled at $\Delta t$ intervals, we can represent it as a Fourier series of the following form. \cite{Grauer_2018}.
+\[
+n(t) = \dfrac{c_0}{2} + \sum_{k=1}^{N/2} c_k \sin{(\dfrac{2 \pi kt}{T} + \phi_k)} = \dfrac{c_0}{2} + \sum_{k=1}^{N/2} c_k \sin{(2 \pi \omega_k t + \phi_k)} \; \; \; \text{where $\phi_k = Unif(-\pi, \pi), c_k = c \in \mathbb{R}.$\\}
+\]
+After applying a low pass filter of bandwidth $[0, \omega_b]$ to $n(t)$, we get our filter $w(t).$ This corresponds to $c_k = 0$  for all $\omega_k = \dfrac{k}{T} \leq \omega_b.$ Hence, we get that 
+\begin{align*}
+	w(t) &= \dfrac{c_0}{2} + \sum_{k=1}^{T \omega_b} c \sin{(2 \pi \omega_k t + \phi_k)} \\
+	&= \dfrac{c_0}{2} + \sum_{k=1}^{T \omega_b} c \dfrac{e^{i(2 \pi \omega_k t + \phi_k)} - e^{-i(2 \pi \omega_k t + \phi_k)}}{2i} \\
+	&= \dfrac{c_0}{2} + \sum_{k=1}^{T\omega_b} c \bigg[ \dfrac{e^{i\phi_k}}{2i} e^{i 2 \pi \omega_k t} + \big(\dfrac{e^{i\phi_k}}{2i} \big)^*  e^{-i 2 \pi \omega_k t} \bigg] \\
+	&= \sum_{k=-T\omega_b}^{k=T\omega_b} c_k e^{i2 \pi\omega_k t} & c_k = \begin{cases}
+	\dfrac{c_0}{2} & k=0 \\
+	\dfrac{ce^{i \phi_k}}{2i} & k > 0 \\
+	c_{|k|}^* & k<0 \\
+	\end{cases}
+	\end{align*}
+
+Now, given a signal $x(t)$ of length $T$, we can write it as a Fourier series.
+\[
+x(t) \approx \sum_{k=-N}^{N} d_k e^{i 2 \pi \omega_k t} \; \; \; \text{ where }d_k = \dfrac{1}{T} \int_0^T x(t) e^{-i2 \pi \omega_k t} dt  
+\]
+Then, we can write our generator in the following way.
+\begin{align*}
+	\int_0^T x(t) \omega^*(t) dt &= \int_0^T \sum_{k=-N}^N d_k e^{i 2 \pi \omega_k t} \sum_{l = -T \omega_b}^{T \omega_b} c_l^* e^{-i 2 \pi \omega_l t} dt \\
+	&= \sum_{k=-N}^N \sum_{l=-T \omega_B}^{T \omega_B} d_k c_l^* \int_0^T e^{i 2 \pi \omega_k t} e^{-i 2 \pi \omega_l t} dt \\
+	&= T \sum_{m=-T \omega_B}^{T \omega_B} c_m^* d_m & \bigg(\int_0^T e^{i 2 \pi \omega_k t} e^{-i 2 \pi \omega_l t} dt = T \cdot \delta_{kl} \bigg)
+\end{align*}
+
+Then, given $x(t)$ and $x'(t)$ of length $T$ and some non-linearity $h(x)$, the kernel induced by projecting onto these random features is as follows. 
+\begin{align*}
+	k(x, x') = \E_w \bigg[ h\big(\int_0^T x(t) w^*(t) dt\big) h\big(\int_0^T x'(t) w^*(t) dt\big)^* \bigg] 
+\end{align*}
+We will compute the induced kernel in the case when $h(x) = x.$ Then, we have
+\begin{align*}
+k(x, x') &= \E_{\phi_i \sim Unif(-\pi, \pi)} \bigg[T^2 \sum_{m=-T \omega_B}^{T \omega_B} \sum_{n=-T \omega_B}^{T \omega_B} c_m^*(\phi_m) c_n(\phi_n) d_m d_n^* \bigg] \\
+		&= \sum_{m=-T \omega_B}^{T \omega_B} \sum_{n=-T \omega_B}^{T \omega_B} T^2 d_m d_n^* \E_{\phi_i} \bigg[ c_m^*(\phi) c_n(\phi)\bigg]
+\end{align*}
+Here,
+\begin{align*}
+	\E_\phi [c_m^*(\phi_1) c_n(\phi_2)] &= \E \bigg[\dfrac{c e^{i \phi_1}}{2i} \cdot \dfrac{c e^{i \phi_2}}{2i} \bigg] \\
+	&= \dfrac{-c^2}{4} \E[e^{i(\phi_1 - \phi_2)}] \\
+	&= \delta_{\phi_k\phi_l} \dfrac{-2 \pi \cdot c^2}{4} \\
+	&= \delta_{\phi_k \phi_l}\dfrac{-\pi c^2}{2}
+\end{align*} 
+Therefore,
+\begin{align*}
+	k(x, x') &= \sum_{m=-T\omega_B}^{T \omega_B} \dfrac{-\pi c^2}{2} \dfrac{T^2}{T^2} \bigg(\int_0^T x(t) e^{\dfrac{-i2\pi m t}{T}} \bigg) \bigg(\int_0^T x'(t) e^{\dfrac{-i2\pi m t}{T}} \bigg) \\
+		&= \dfrac{- \pi c^2}{2}  \sum_{m=-T\omega_B}^{T \omega_B} \bigg(\int_0^T x(t) e^{\dfrac{-i2\pi m t}{T}} \bigg) \bigg(\int_0^T x'(t) e^{\dfrac{-i2\pi m t}{T}} \bigg) \\
+\end{align*}
 
 \subsection{Algorithms} % (fold)
 \label{sub:algorithms}
