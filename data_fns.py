@@ -88,3 +88,22 @@ def data_matrix(series, label, N=40):
     y = label[N:]
     return X, y                       
 
+
+def data_matrix_non_ov(series, label, N=40):
+    ''' 
+    From a time series, generate a n_sample x n_feature matrix using non-overlapping windows.
+    
+    Parameters
+    ----------
+    series: 1-D numpy array shape (M, 1)
+    label: 1-D numpy array shape (M, 1)
+    N: n_features of the data matrix
+    
+    Returns
+    -------
+    X: array of shape (M - N, N)
+    y: array of shape (M - N, )
+    '''
+    X = np.array([series[N * i:N * (i + 1)] for i in range(int(len(series)/N))])
+    y = label[N-1::N]
+    return X, y 
