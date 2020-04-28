@@ -3,6 +3,7 @@ Functions for generating data to test random features classifier.
 '''
 
 import numpy as np
+import scipy
 from scipy import signal
 
 def butter_bandpass(lowcut, highcut, fs, order=2):
@@ -107,3 +108,48 @@ def data_matrix_non_ov(series, label, N=40):
     X = np.array([series[N * i:N * (i + 1)] for i in range(int(len(series)/N))])
     y = label[N-1::N]
     return X, y 
+
+def pure_sine_dft(nPoints, fs, k, sig_dur, a, seed=None):
+    ''' 
+    Sample DFT matrix to generate a data matrix for classification. The positive examples are pure tone 
+    sinusoids with k cycles in sig_dur while the negative examples are white noise N(0,1).
+    
+    Parameters
+    ----------
+    nPoints: total number of data points in the data matrix.
+    fs: sampling frequency (Hz)
+    sig_dur: duration of each data point (s)
+    k: number of sinusoidal cycles in the duration of data point
+    a: SNR of the signal
+    seed: random state
+    
+    Returns
+    -------
+    X: array of shape (nPoints) x (fs * sig_dur)
+    y: array with binary values (-1,1) of shape (nPoints,)
+    '''
+    
+    if seed is not None:
+        np.random.seed(seed)
+
+    N = int(fs * sig_dur)
+    noise_amp = np.sqrt(1 - a ** 2)
+    
+    # dft matrix
+    A = scipy.linalg.dft(N, scale=None)
+    
+    # positive examples
+    n_pos = int(nPoints/2)
+    c = np.zeros((N, n_pos), dtype=complex)
+    phi = np.random.uniform(-np.pi, np.pi, (n_pos,)) # randomly sample the phase
+    c[k] = np.e ** (1j * phi) 
+    X_pos = np.sqrt(2) * a * (A @ c).T.real + noise_amp * np.random.normal(size=(n_pos, N))
+    
+    # negative examples 
+    X_neg = np.random.normal(size=(n_pos, N))
+    
+    # concatenate
+    X = np.vstack((X_pos, X_neg))
+    y = np.hstack((np.ones(n_pos) , np.ones(n_pos) * -1))
+    
+    return X, y

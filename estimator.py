@@ -4,7 +4,7 @@ Random features classifier for time series data'''
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.svm import LinearSVC
 import numpy as np
-import scipy
+from scipy import signal
 
 
 ## nonlinearities
@@ -101,12 +101,42 @@ def random_feature_matrix(M, N, weights='white noise', rand_seed=None):
     elif weights == 'white noise':
         J = np.random.randn(M, N)
     
-    elif weights is None:
+    elif weights == 'identity':
         J = np.eye(N, N)
 
     else:
         J = weights(M, N)
     return J.T
+
+def butter_bandpass(lowcut, highcut, fs, order=2):
+    nyq = fs / 2
+    low = lowcut / nyq
+    high = highcut / nyq
+    b, a = signal.butter(order, [low, high], btype='band')
+    return b, a
+
+def butter_bandpass_filter(data, lowcut, highcut, fs, order=2):
+    b, a = butter_bandpass(lowcut, highcut, fs, order=order)
+    return signal.lfilter(b, a, data)
+
+def bp_weights(M, N, lowcut, highcut, fs):
+    J = np.random.randn(M, N)
+    J = butter_bandpass_filter(J, lowcut, highcut, fs)
+    return J.T
+
+def bp_weights_gaus(M, N, lowcut, highcut, fs):
+    W = np.zeros((M, N))
+
+    t_points = np.arange(N) / fs
+    wk = 2 * np.pi * np.arange(lowcut, highcut + 1)
+    
+    c = 1 / len(wk)
+    Sk = 1
+    for i in range(M):
+        Ak = np.random.normal(size=(len(wk), 2))
+        for j, t in enumerate(t_points):
+            W[i, j] = c / np.sqrt(np.pi) * np.sum(Sk * (Ak[:, 0] * np.cos(wk * t) + Ak[:, 1] * np.cos(wk * t)))
+    return W.T
 
 
 
