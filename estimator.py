@@ -1,10 +1,17 @@
 ''' BP: Feb 12, 2020
-Random features classifier for time series data'''
+Random features classifier for time series data
+
+May 4th 2020(BP): Normalized H by its frobenius norm. 
+'''
+
+
 
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.svm import LinearSVC
 import numpy as np
+import numpy.linalg as la
 from scipy import signal
+import scipy.linalg
 
 
 ## nonlinearities
@@ -50,6 +57,7 @@ class RFClassifier(BaseEstimator, ClassifierMixin):
             self.W_ = \
             random_feature_matrix(self.width, n, self.weights, self.seed)
         H = self.nonlinearity(X @ self.W_)
+        H /= la.norm(H)
         
         #fit classifier
         self.clf.fit(H, y)
@@ -58,14 +66,17 @@ class RFClassifier(BaseEstimator, ClassifierMixin):
 
     def transform(self, X):
         H = self.nonlinearity(X @ self.W_)
+        H /= la.norm(H)
         return H
     
     def predict(self, X):
         H = self.nonlinearity(X @ self.W_)
+        H /= la.norm(H)
         return self.clf.predict(H)
     
     def score(self, X, y):
         H = self.nonlinearity(X @ self.W_)
+        H /= la.norm(H)
         return self.clf.score(H, y)
 
 def gaussian(X, mu, sigma):
@@ -79,9 +90,9 @@ def random_feature_matrix(M, N, weights='white noise', rand_seed=None):
     Parameters
     ----------
     
-    M: number of rows
+    M: number of samples
     
-    N: number of columns
+    N: number of features
     
     weights: string or function, default 'gaussian.'
     If 'unimodal', entries are gaussians with means ~ Unif(0, 1), and std. dev ~ Unif(0.1, N).
@@ -99,7 +110,11 @@ def random_feature_matrix(M, N, weights='white noise', rand_seed=None):
         J = np.array([gaussian(k, m, s) for (m, s) in zip(mu, sigma)]) * np.random.randint(1, 20, (M, 1))
 
     elif weights == 'white noise':
-        J = np.random.randn(M, N)
+#         J = np.random.randn(M, N)
+        dft = scipy.linalg.dft(N, scale=None)
+        rand = np.random.normal(size=(M, N))
+        J = (rand @ dft).real
+        J /= np.std(J, axis=1).reshape(-1, 1)
     
     elif weights == 'identity':
         J = np.eye(N, N)
@@ -138,6 +153,14 @@ def bp_weights_gaus(M, N, lowcut, highcut, fs):
             W[i, j] = c / np.sqrt(np.pi) * np.sum(Sk * (Ak[:, 0] * np.cos(wk * t) + Ak[:, 1] * np.cos(wk * t)))
     return W.T
 
+def bp_weights_dft(M, N, lowcut, highcut):
+    dft = scipy.linalg.dft(N, scale=None)
+    rand = np.zeros((M, N), dtype=complex)
+    phi = np.random.uniform(-np.pi, np.pi, (M, highcut - lowcut))
+    rand[:, lowcut:highcut] = np.random.normal(size=(M, highcut-lowcut)).astype(complex) * np.e ** (1j * phi)
+    W = (rand @ dft).real
+    W /= np.std(W, axis=1).reshape(-1, 1)
+    return W.T
 
 
 

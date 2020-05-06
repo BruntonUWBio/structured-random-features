@@ -109,7 +109,7 @@ def data_matrix_non_ov(series, label, N=40):
     y = label[N-1::N]
     return X, y 
 
-def pure_sine_dft(nPoints, fs, k, sig_dur, a, seed=None):
+def pure_sine_dft_v1(nPoints, fs, k, sig_dur, a, seed=None):
     ''' 
     Sample DFT matrix to generate a data matrix for classification. The positive examples are pure tone 
     sinusoids with k cycles in sig_dur while the negative examples are white noise N(0,1).
@@ -153,3 +153,42 @@ def pure_sine_dft(nPoints, fs, k, sig_dur, a, seed=None):
     y = np.hstack((np.ones(n_pos) , np.ones(n_pos) * -1))
     
     return X, y
+
+
+def pure_sine_dft(nPoints, fs, k, sig_dur, a, seed=None):  
+    
+    if seed is not None:
+        np.random.seed(seed)
+
+    N = int(fs * sig_dur)
+    noise_amp = np.sqrt(1 - a ** 2)
+
+    # dft matrix
+    A = scipy.linalg.dft(N, scale=None)
+
+    # positive examples
+    n_pos = int(nPoints/2)
+    c = np.zeros((N, n_pos), dtype=complex)
+    phi = np.random.uniform(-np.pi, np.pi, (n_pos,)) # randomly sample the phase
+    c[k] = np.e ** (1j * phi) 
+    X_pos = np.sqrt(2) * a * (A @ c).T.real 
+
+    # noise for positive egs
+    phi_noise = np.random.uniform(-np.pi, np.pi, (n_pos, N))
+    c_noise = np.random.normal(size=(n_pos, N)).astype(complex) * np.e ** (1j * phi_noise)
+    noise = (c_noise @ A).real
+    noise = noise_amp * noise / np.std(noise, axis=1).reshape(-1, 1)
+    X_pos += noise
+
+    # negative examples
+    phi_neg = np.random.uniform(-np.pi, np.pi, (n_pos, N))
+    c_neg = np.random.normal(size=(n_pos, N)).astype(complex) * np.e ** (1j * phi_neg)
+    X_neg = (c_neg @ A).real
+    X_neg = X_neg / np.std(X_neg, axis=1).reshape(-1, 1)
+
+    # concatenate
+    X = np.vstack((X_pos, X_neg))
+    y = np.hstack((np.ones(n_pos) , np.ones(n_pos) * -1))
+    
+    return X, y
+
