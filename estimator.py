@@ -57,7 +57,8 @@ class RFClassifier(BaseEstimator, ClassifierMixin):
             self.W_ = \
             random_feature_matrix(self.width, n, self.weights, self.seed)
         H = self.nonlinearity(X @ self.W_)
-        H /= la.norm(H)
+        diag = np.diag(1 / (la.norm(H, axis=1) + 1E-3)) # to avoid division by 0
+        H = np.dot(diag, H)
         
         #fit classifier
         self.clf.fit(H, y)
@@ -66,17 +67,20 @@ class RFClassifier(BaseEstimator, ClassifierMixin):
 
     def transform(self, X):
         H = self.nonlinearity(X @ self.W_)
-        H /= la.norm(H)
+        diag = np.diag(1 / (la.norm(H, axis=1) + 1E-3))
+        H = np.dot(diag, H)
         return H
     
     def predict(self, X):
         H = self.nonlinearity(X @ self.W_)
-        H /= la.norm(H)
+        diag = np.diag(1 / (la.norm(H, axis=1) + 1E-3))
+        H = np.dot(diag, H)
         return self.clf.predict(H)
     
     def score(self, X, y):
         H = self.nonlinearity(X @ self.W_)
-        H /= la.norm(H)
+        diag = np.diag(1 / (la.norm(H, axis=1) + 1E-3))
+        H = np.dot(diag, H)
         return self.clf.score(H, y)
 
 def gaussian(X, mu, sigma):
@@ -110,9 +114,8 @@ def random_feature_matrix(M, N, weights='white noise', rand_seed=None):
         J = np.array([gaussian(k, m, s) for (m, s) in zip(mu, sigma)]) * np.random.randint(1, 20, (M, 1))
 
     elif weights == 'white noise':
-#         J = np.random.randn(M, N)
         dft = scipy.linalg.dft(N, scale=None)
-        rand = np.random.normal(size=(M, N))
+        rand = np.random.normal(0, 1, size=(M, N, 2)).view(np.complex).squeeze(axis=2)
         J = (rand @ dft).real
         J /= np.std(J, axis=1).reshape(-1, 1)
     
@@ -153,7 +156,7 @@ def bp_weights_gaus(M, N, lowcut, highcut, fs):
             W[i, j] = c / np.sqrt(np.pi) * np.sum(Sk * (Ak[:, 0] * np.cos(wk * t) + Ak[:, 1] * np.cos(wk * t)))
     return W.T
 
-def bp_weights_dft(M, N, lowcut, highcut):
+def bp_weights_dft_v1(M, N, lowcut, highcut):
     dft = scipy.linalg.dft(N, scale=None)
     rand = np.zeros((M, N), dtype=complex)
     phi = np.random.uniform(-np.pi, np.pi, (M, highcut - lowcut))
@@ -162,5 +165,11 @@ def bp_weights_dft(M, N, lowcut, highcut):
     W /= np.std(W, axis=1).reshape(-1, 1)
     return W.T
 
-
+def bp_weights_dft(M, N, lowcut, highcut):
+    dft = scipy.linalg.dft(N, scale=None)
+    rand = np.zeros((M, N), dtype=complex)
+    rand[:, lowcut:highcut] = np.random.normal(0, 1, size=(M, highcut-lowcut, 2)).view(np.complex).squeeze()
+    W = (rand @ dft).real
+    W /= np.std(W, axis=1).reshape(-1, 1)
+    return W.T
 

@@ -155,7 +155,8 @@ def pure_sine_dft_v1(nPoints, fs, k, sig_dur, a, seed=None):
     return X, y
 
 
-def pure_sine_dft(nPoints, fs, k, sig_dur, a, seed=None):  
+def pure_sine_dft_v2(nPoints, fs, k, sig_dur, a, seed=None):  
+    ''' Same as above except the everything is generated from the dft matrix'''
     
     if seed is not None:
         np.random.seed(seed)
@@ -192,3 +193,39 @@ def pure_sine_dft(nPoints, fs, k, sig_dur, a, seed=None):
     
     return X, y
 
+def pure_sine_dft(nPoints, fs, k, sig_dur, a, seed=None):  
+    ''' Same as above except everything is generated from a gaussian process. Before, 
+    there was a uniform distribution for the phase'''
+
+    if seed is not None:
+        np.random.seed(seed)
+
+    N = int(fs * sig_dur)
+    noise_amp = np.sqrt(1 - a ** 2)
+
+    # dft matrix
+    A = scipy.linalg.dft(N, scale=None)
+
+    # positive examples
+    n_pos = int(nPoints/2)
+    c = np.zeros((N, n_pos), dtype=complex)
+    rand = np.random.normal(loc=0, scale=1, size=(n_pos, 2)).view(np.complex).flatten()
+    c[k] = rand / np.abs(rand)
+    X_pos = np.sqrt(2) * a * (A @ c).T.real 
+
+    # noise for positive egs
+    rand = np.random.normal(loc=0, scale=1, size=(N, n_pos, 2)).view(np.complex).squeeze(axis=2)
+    noise = (rand.T @ A).real
+    noise = noise_amp * noise / np.std(noise, axis=1).reshape(-1, 1)
+    X_pos += noise
+
+    # negative examples
+    rand = np.random.normal(loc=0, scale=1, size=(N, n_pos, 2)).view(np.complex).squeeze(axis=2)
+    X_neg = (rand.T @ A).real
+    X_neg = X_neg / np.std(X_neg, axis=1).reshape(-1, 1)
+
+    # concatenate
+    X = np.vstack((X_pos, X_neg))
+    y = np.hstack((np.ones(n_pos) , np.ones(n_pos) * -1))
+    
+    return X, y
