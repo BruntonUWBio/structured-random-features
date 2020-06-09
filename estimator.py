@@ -57,8 +57,8 @@ class RFClassifier(BaseEstimator, ClassifierMixin):
             self.W_ = \
             random_feature_matrix(self.width, n, self.weights, self.seed)
         H = self.nonlinearity(X @ self.W_)
-        diag = np.diag(1 / (la.norm(H, axis=1) + 1E-3)) # to avoid division by 0
-        H = np.dot(diag, H)
+#         diag = np.diag(1 / (la.norm(H, axis=1) + 1E-3)) # to avoid division by 0
+#         H = np.dot(diag, H)
         
         #fit classifier
         self.clf.fit(H, y)
@@ -67,20 +67,20 @@ class RFClassifier(BaseEstimator, ClassifierMixin):
 
     def transform(self, X):
         H = self.nonlinearity(X @ self.W_)
-        diag = np.diag(1 / (la.norm(H, axis=1) + 1E-3))
-        H = np.dot(diag, H)
+#         diag = np.diag(1 / (la.norm(H, axis=1) + 1E-3))
+#         H = np.dot(diag, H)
         return H
     
     def predict(self, X):
         H = self.nonlinearity(X @ self.W_)
-        diag = np.diag(1 / (la.norm(H, axis=1) + 1E-3))
-        H = np.dot(diag, H)
+#         diag = np.diag(1 / (la.norm(H, axis=1) + 1E-3))
+#         H = np.dot(diag, H)
         return self.clf.predict(H)
     
     def score(self, X, y):
         H = self.nonlinearity(X @ self.W_)
-        diag = np.diag(1 / (la.norm(H, axis=1) + 1E-3))
-        H = np.dot(diag, H)
+#         diag = np.diag(1 / (la.norm(H, axis=1) + 1E-3))
+#         H = np.dot(diag, H)
         return self.clf.score(H, y)
 
 def gaussian(X, mu, sigma):
