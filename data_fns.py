@@ -229,3 +229,60 @@ def pure_sine_dft(nPoints, fs, k, sig_dur, a, seed=None):
     y = np.hstack((np.ones(n_pos) , np.ones(n_pos) * -1))
     
     return X, y
+
+
+def XOR_data(nPoints, fs, k1, k2, sig_dur, a, seed=None):
+    if seed is not None:
+        np.random.seed(seed)
+
+    N = int(fs * sig_dur)
+    noise_amp = np.sqrt(1 - a ** 2)
+
+    #dft matrix
+    A = scipy.linalg.dft(N, scale=None)
+
+    # positive examples
+    n_pos = int(nPoints/2)
+    c = np.zeros((N, n_pos), dtype='complex')
+    rand = np.random.normal(loc=0, scale=1, size=(int(n_pos/ 2), 2)).view(np.complex).flatten()
+    rand /= np.abs(rand)
+    c[k1, :int(n_pos/2)] = rand
+
+    rand = np.random.normal(loc=0, scale=1, size=(int(n_pos/ 2), 2)).view(np.complex).flatten()
+    rand /= np.abs(rand)
+    c[k2, int(n_pos/2):] = rand
+    X_pos = np.sqrt(2) * a * (A @ c).T.real
+
+    # noise for positive egs
+    rand = np.random.normal(loc=0, scale=1, size=(N, n_pos, 2)).view(np.complex).squeeze(axis=2)
+    rand /= np.abs(rand)
+    noise = np.sqrt(2) * noise_amp / np.sqrt(N - 1) * (rand.T @ A).real
+    X_pos += noise
+
+    # negative egs
+    n_neg = int(nPoints/2)
+
+    # mixed egs
+    c = np.zeros((N, int(n_neg/2)), dtype='complex')
+    rand = np.random.normal(loc=0, scale=1, size=(1, int(n_neg/2), 2)).view(np.complex).squeeze(axis=2)
+    rand /= np.abs(rand)
+    c[[k1, k2]] = rand
+    X_mixed = a * (A @ c).T.real
+
+    # noise for mixed egs
+    rand = np.random.normal(loc=0, scale=1, size=(N, int(n_neg/2), 2)).view(np.complex).squeeze(axis=2)
+    rand /= np.abs(rand)
+    noise = np.sqrt(2) * noise_amp / np.sqrt(N - 2) * (rand.T @ A).real
+    X_mixed += noise
+
+    # noise as negative egs
+    c = np.random.normal(loc=0, scale=1, size=(N, int(n_neg/2), 2)).view(np.complex).squeeze(axis=2)
+    c /= np.abs(c)
+    X_noise = np.sqrt(2) * (A @ c).T.real / np.sqrt(N)
+    
+    X_neg = np.row_stack((X_mixed, X_noise))
+        
+    X = np.vstack((X_pos, X_neg))
+    y = np.hstack((np.ones(n_pos), np.ones(n_neg) * -1))
+    
+    return X, y
