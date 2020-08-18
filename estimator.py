@@ -12,6 +12,7 @@ import numpy as np
 import numpy.linalg as la
 from scipy import signal
 import scipy.linalg
+from scipy.spatial.distance import pdist, squareform
 
 
 ## nonlinearities
@@ -173,3 +174,31 @@ def bp_weights_dft(M, N, lowcut, highcut):
     W /= np.std(W, axis=1).reshape(-1, 1)
     return W.T
 
+def gabor_kernel_matrix(N, t, l, m):
+    x = np.arange(np.sqrt(N))
+    yy, xx = np.meshgrid(x, x)
+    grid = np.column_stack((xx.flatten(), yy.flatten()))
+    
+    a = squareform(pdist(grid, 'sqeuclidean'))
+    b = la.norm(grid - m, axis=1) ** 2
+    c = b.reshape(-1, 1)
+    K = 10 * np.exp(-a / (2 * l ** 2)) * np.exp(-b / (2 * t ** 2)) * np.exp(-c / (2 * t ** 2))
+    K += 1e-5 * np.eye(N)
+    return K
+
+def gabor_random_features_for_center(N, t, l, m, seed=None):
+    np.random.seed(seed)
+    K = gabor_kernel_matrix(N, t, l, m)
+    L = np.linalg.cholesky(K)
+    w = np.dot(L, np.random.randn(N))
+    return w
+
+def gabor_random_features(M, N, t, l, seed=None):
+    np.random.seed(seed)
+    centers = np.random.randint(int(np.sqrt(N)), size=(M, 2))
+
+    W = np.empty(shape=(0, N))
+    for m in centers:
+        w = gabor_random_features_for_center(N, t, l, m, seed=seed)
+        W = np.row_stack((W, w.T))
+    return W
