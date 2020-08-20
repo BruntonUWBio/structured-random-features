@@ -424,3 +424,138 @@ def poly(x, power=2):
         Output
     """
     return np.power(x, power)
+
+
+
+def clf_wrapper(RFClassifier, params, X_train, y_train, X_test, y_test, return_clf=False):
+    """
+    Wrapper function for RFClassifier. Fits on train data and evaluates on the test data.
+    
+    Parameters
+    ----------
+    
+    RFClassifier : class
+        Random feature classifier class
+    
+    params : dict
+        Parameters for the RFClassifier
+    
+    X_train : array-like of shape (n_samples, n_features)
+        Training data
+    
+    y_train : array-like of shape (n_samples,)
+        Training labels
+        
+    X_test : array-like of shape (n_samples, n_features)
+        Test data
+       
+    y_test : array-like of shape (n_samples,)
+        Test labels
+    
+    return_clf : bool, default=False
+        Returns the fitted RFClassifier
+   
+   Returns
+   -------
+
+   train_error : float
+       training error
+   
+   test_error : float
+       test error
+   
+   clf : class
+       Fitted RFCLassifier class
+  
+    """
+    
+    clf = RFClassifier(**params)
+    clf.fit(X_train, y_train)
+    test_error = clf.score(X_test, y_test)
+    train_error = clf.score(X_train, y_train)
+    
+    if return_clf is True:
+        return train_error, test_error, clf
+    else:
+        return train_error, test_error
+    
+    
+def parallelized_clf(RFClassifier, params, X_train, y_train, X_test, y_test, n_iters=5, return_clf=False):
+    """
+    Runs random feature classifier multiple times using the Dask framework.
+    
+    Parameters
+    ----------
+    
+    RFClassifier : class
+        Random feature classifier class
+        
+    params : dict
+        Parameters for the RFClassifier
+    
+    X_train : array-like of shape (n_samples, n_features)
+        Training data
+    
+    y_train : array-like of shape (n_samples,)
+        Training labels
+        
+    X_test : array-like of shape (n_samples, n_features)
+        Test data
+       
+    y_test : array-like of shape (n_samples,)
+        Test labels
+        
+    n_iters : int
+        Number of times to run the RFClassifer on train data
+   
+   
+   Returns
+   -------
+
+   mean_train_error : float
+       average training error for all of the n_iter classifers
+   
+   std_train_error : float
+       standard deviation of the training error for all of the n_iter classifiers
+       
+   mean_test_error : float
+       average test error for all of the n_iter classifiers
+       
+   std_test_error : float
+       standard deviation of the test error for all the n_iter classifiers
+    """
+    
+    import dask
+
+    lazy_results = []
+    for i in range(n_iters):
+        lazy_clf = dask.delayed(clf_wrapper)(RFClassifier, params, X_train, y_train, X_test, y_test, return_clf=return_clf)
+        lazy_results.append(lazy_clf)
+    futures = np.array(dask.compute(*lazy_results))
+
+    train_error = futures[:, 0]
+    test_error = futures[:, 1]
+    mean_train_error = np.mean(train_error)
+    std_train_error = np.std(train_error)
+    mean_test_error = np.mean(test_error)
+    std_test_error = np.std(test_error)
+    
+    if return_clf is True:
+        clf = futures[:, 2]
+        return mean_train_error, std_train_error, mean_test_error, std_test_error, clf
+    else:
+        return mean_train_error, std_train_error, mean_test_error, std_test_error
+    
+
+# def complexity_analysis:
+#     if return_complexity is True:
+#         phi = clf.transform(X_train)
+#         K = np.dot(phi, phi.T)
+#         B = np.sqrt(trace(K))
+    
+    
+    
+    
+    
+    
+    
