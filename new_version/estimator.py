@@ -195,7 +195,7 @@ class RFClassifier(BaseEstimator, ClassifierMixin):
         
 
 def classical_weights(M, N, random_state=None):
-    """
+    """"
     Generates classical random weights. W ~ N(0, 1).
 
     Parameters
@@ -471,8 +471,8 @@ def clf_wrapper(RFClassifier, params, X_train, y_train, X_test, y_test, return_c
     
     clf = RFClassifier(**params)
     clf.fit(X_train, y_train)
-    test_error = clf.score(X_test, y_test)
-    train_error = clf.score(X_train, y_train)
+    test_error = 1 - clf.score(X_test, y_test)
+    train_error = 1 - clf.score(X_train, y_train)
     
     if return_clf is True:
         return train_error, test_error, clf
