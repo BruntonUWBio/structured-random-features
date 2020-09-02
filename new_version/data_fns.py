@@ -185,7 +185,7 @@ def frequency_XOR(n_samples, fs, k1, k2, signal_duration, a,
     return X, y
 
 
-def load_mnist(data_path='./data/MNIST'):
+def load_mnist(data_path='./data/mnist'):
     """
     Loads the MNIST handwritten digits data. There are 60k training
     images and 10k testing images. Each image is (28, 28). The digits 
