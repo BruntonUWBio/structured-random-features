@@ -383,6 +383,39 @@ def load_omniglot(data_path='./data/omniglot-py/'):
         data_dict = pickle.load(handle)
     return data_dict['data'], data_dict['labels']
 
+def load_fashion_mnist(data_path='./data/fashion_MNIST'):
+    """
+    Loads the fashion MNIST dataset. There are 60k training
+    images and 10k testing images. Each image is (28, 28). There are 10
+    fashion classes here. The format is the same as the MNIST dataset.
+
+    Parameters
+    ----------
+    data_path : string, default='./data/fashion_MNIST'
+        Path to the fashion_MNIST folder.
+    
+    Returns
+    -------
+    train : (array-like) of shape (60000, 784)
+        Training data
+
+    train_labels : (array-like) of shape (60000,)
+        Training labels
+
+    test : (array-like) of shape (10000, 784)
+        Testing data
+
+    test_labels : (array-like) of shape (10000,)
+        Test data labels
+    """
+    from mnist import MNIST
+    mndata = MNIST(data_path)
+    train, train_labels = map(np.array, mndata.load_training())
+    test, test_labels = map(np.array, mndata.load_testing())
+    train = train/255
+    test = test/255
+    return train, train_labels, test, test_labels
+
 
 
 
