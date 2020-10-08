@@ -194,77 +194,77 @@ class RFClassifier(BaseEstimator, ClassifierMixin):
         return score
         
 
-def classical_weights(M, N, random_state=None):
-    """"
-    Generates classical random weights. W ~ N(0, 1).
+# def classical_weights(M, N, random_state=None):
+#     """"
+#     Generates classical random weights. W ~ N(0, 1).
 
-    Parameters
-    ----------
+#     Parameters
+#     ----------
 
-    M : int
-        Number of random weights
+#     M : int
+#         Number of random weights
 
-    N : int
-        Number of features
+#     N : int
+#         Number of features
     
-    random_state : int, default=None
-        Used to set the seed when generating random weights.
+#     random_state : int, default=None
+#         Used to set the seed when generating random weights.
 
-    Returns
-    -------
+#     Returns
+#     -------
 
-    W : array-like of shape (M, N)
-        Random weights.
-    """
-    np.random.seed(random_state)
-    dft = scipy.linalg.dft(N, scale=None)
-    rand = np.random.normal(0, 1, size=(M, N, 2)).view(np.complex).squeeze(axis=2)
-    W = np.dot(rand, dft).real
-    W /= np.std(W, axis=1).reshape(-1, 1) # original
-#     W /= la.norm(W, axis=1).reshape(-1, 1)
-    W /= la.norm(W, axis=0).reshape(1, -1)
-    return W
+#     W : array-like of shape (M, N)
+#         Random weights.
+#     """
+#     np.random.seed(random_state)
+#     dft = scipy.linalg.dft(N, scale=None)
+#     rand = np.random.normal(0, 1, size=(M, N, 2)).view(np.complex).squeeze(axis=2)
+#     W = np.dot(rand, dft).real
+#     W /= np.std(W, axis=1).reshape(-1, 1) # original
+# #     W /= la.norm(W, axis=1).reshape(-1, 1)
+#     W /= la.norm(W, axis=0).reshape(1, -1)
+#     return W
 
-def haltere_inspired_weights(M, N, lowcut, highcut, random_state=None):
-    """
-    Generates random weights with tuning similar to mechanosensory 
-    neurons in insect halteres. Weights are band-limited gaussian 
-    process with fourier eigenbasis.
+# def haltere_inspired_weights(M, N, lowcut, highcut, random_state=None):
+#     """
+#     Generates random weights with tuning similar to mechanosensory 
+#     neurons in insect halteres. Weights are band-limited gaussian 
+#     process with fourier eigenbasis.
 
-    Parameters
-    ----------
+#     Parameters
+#     ----------
 
-    M : int
-        Number of random weights
+#     M : int
+#         Number of random weights
 
-    N : int
-        Number of features
+#     N : int
+#         Number of features
 
-    lowcut: int, column of the (N x N) DFT matrix
-        Low end of the frequency band. 
+#     lowcut: int, column of the (N x N) DFT matrix
+#         Low end of the frequency band. 
 
-    highcut: int, column of the (N x N) DFT matrix
-        High end of the frequency band.
+#     highcut: int, column of the (N x N) DFT matrix
+#         High end of the frequency band.
     
-    random_state : int, default=None
-        Used to set the seed when generating random weights.
+#     random_state : int, default=None
+#         Used to set the seed when generating random weights.
     
-    Returns
-    -------
+#     Returns
+#     -------
 
-    W : array-like of shape (M, N)
-        Random weights.
-    """
-    np.random.seed(random_state)
-    dft = scipy.linalg.dft(N, scale=None)
-    rand = np.zeros((M, N), dtype=complex)
-    rand[:, lowcut:highcut] = np.random.normal(0, 1, 
-                size=(M, highcut-lowcut, 2)).view(np.complex).squeeze()
-    W = np.dot(rand, dft).real
-    W /= la.norm(W, axis=0).reshape(1, -1)
-    W /= np.std(W, axis=1).reshape(-1, 1) # original
-#     W /= la.norm(W, axis=1).reshape(-1, 1)
-    return W
+#     W : array-like of shape (M, N)
+#         Random weights.
+#     """
+#     np.random.seed(random_state)
+#     dft = scipy.linalg.dft(N, scale=None)
+#     rand = np.zeros((M, N), dtype=complex)
+#     rand[:, lowcut:highcut] = np.random.normal(0, 1, 
+#                 size=(M, highcut-lowcut, 2)).view(np.complex).squeeze()
+#     W = np.dot(rand, dft).real
+#     W /= la.norm(W, axis=0).reshape(1, -1)
+#     W /= np.std(W, axis=1).reshape(-1, 1) # original
+# #     W /= la.norm(W, axis=1).reshape(-1, 1)
+#     return W
 
 
 def V1_inspired_kernel_matrix(N, t, l, m):
@@ -552,11 +552,163 @@ def parallelized_clf(RFClassifier, params, X_train, y_train, X_test, y_test, n_i
         return mean_train_error, std_train_error, mean_test_error, std_test_error
     
 
-# def complexity_analysis:
-#     if return_complexity is True:
-#         phi = clf.transform(X_train)
-#         K = np.dot(phi, phi.T)
-#         B = np.sqrt(trace(K))
+def classical_covariance_matrix(N, scale=1):
+    """
+    Generates the (N x N) covariance matrix for Gaussian Process with identity covariance. This kernel matrix will be used to generate random weights that are traditionally used in kernel methods.
+
+    K(x, y) = \delta_{xy}
+
+    Parameters
+    ----------
+
+    N : int
+        Number of features 
+
+    scale: float, default=1
+        Used to adjust the magnitude of trace of the cov. matrix
+
+    Returns
+    -------
+
+    C : array-like of shape (N, N)
+        Covariance matrix
+    """
+    C = np.eye(N) * scale
+    return C
+
+def classical_weights(M, N, scale=1, random_state=None):
+    """"
+    Generates classical random weights. W ~ N(0, 1).
+
+    Parameters
+    ----------
+
+    M : int
+        Number of random weights
+
+    N : int
+        Number of features
+
+    scale : float, default=1
+        Used to adjust the magnitude of the cov. matrix that generates the weights
+    
+    random_state : int, default=None
+        Used to set the seed when generating random weights.
+
+    Returns
+    -------
+
+    W : array-like of shape (M, N)
+        Random weights.
+    """
+    np.random.seed(random_state)
+    C = classical_covariance_matrix(N, scale)
+    W = np.multivariate_normal(np.zeros(N), C, M)
+    return W
+
+
+def haltere_covariance_fun(x, y, N, lowcut, highcut):
+    '''
+    Covariance function of the GP inspired by the STAs of mechanosensory neurons in insect halteres.
+
+    k(t, t') = \mathbb{E}[w(t)^T w(t')] =  \sum_{j=0}^{N-1} \lambda_j \cos{\dfrac{i 2 \pi j (t-t')}{N}}
+    \lambda_j = \begin{cases} 1 & a \leq b \\ 0 & otherwise \end{cases}
+
+    Parameters
+    ----------
+
+    x : float
+        input
+
+    y : float
+        input
+
+    N : int
+        dimension of the vector input
+
+    lowcut : int
+        lower end of the frequency band
+
+    highcut : int
+        high end of the frequency band
+
+    Returns
+    -------
+    c : float
+        kernel distance between two inputs
+    '''
+    j = np.arange(0, N - 1, 1)
+    lamda = np.zeros_like(j)
+    lamda[lowcut:highcut] = 1
+    c = np.sum(lamda * np.cos(2 * np.pi * j * (x - y)/ N))
+    return c
+
+
+def haltere_covariance_matrix(N, lowcut, highcut, scale=1):
+    '''
+    Generates the (N x N) covariance matrix for Gaussain Process inspired by the STAs of mechanosensory neurons in insect halteres.
+
+    Parameters
+    ----------
+
+    N: int
+        Number of features
+    
+    lowcut: int
+        low end of the frequency band filter
+
+    highcut : int
+        high end of the frequency band filter
+
+    Returns
+    -------
+    C : array-like of shape (N, N) 
+        Covariance matrix
+    '''
+    C = np.zeros((N, N))
+    for i in range(N):
+        for j in range(N):
+            C[i, j] = haltere_covariance_fun(i, j, N, lowcut, highcut)
+    # constrain matrix trace to be N * scale
+    diag = np.diag(np.sqrt(scale / np.diag(C)))
+    C = diag @ C @ diag
+    return C
+
+def haltere_inspired_weights(M, N, lowcut, highcut, scale=1, random_state=None):
+    """
+    Generates random weights with tuning similar to mechanosensory 
+    neurons in insect halteres. Weights are band-limited gaussian 
+    process with fourier eigenbasis.
+
+    Parameters
+    ----------
+
+    M : int
+        Number of random weights
+
+    N : int
+        Number of features
+
+    lowcut: int
+        Low end of the frequency band. 
+
+    highcut: int
+        High end of the frequency band.
+    
+    random_state : int, default=None
+        Used to set the seed when generating random weights.
+    
+    Returns
+    -------
+
+    W : array-like of shape (M, N)
+        Random weights.
+    """
+    np.random.seed(random_state)
+    C = haltere_covariance_matrix(N, lowcut, highcut, scale)
+    W = np.multivariate_normal(np.zeros(N), C, M)
+    return W
+
     
     
     
