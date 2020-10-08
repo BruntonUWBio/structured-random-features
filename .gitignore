@@ -17,6 +17,6 @@ __pycache__/
 /figures
 /data
 /new_version/data
-
+/new_version/results
 # dask
 dask-worker-space/
