@@ -220,7 +220,9 @@ def classical_weights(M, N, random_state=None):
     dft = scipy.linalg.dft(N, scale=None)
     rand = np.random.normal(0, 1, size=(M, N, 2)).view(np.complex).squeeze(axis=2)
     W = np.dot(rand, dft).real
-    W /= np.std(W, axis=1).reshape(-1, 1)
+    W /= np.std(W, axis=1).reshape(-1, 1) # original
+#     W /= la.norm(W, axis=1).reshape(-1, 1)
+    W /= la.norm(W, axis=0).reshape(1, -1)
     return W
 
 def haltere_inspired_weights(M, N, lowcut, highcut, random_state=None):
@@ -259,7 +261,9 @@ def haltere_inspired_weights(M, N, lowcut, highcut, random_state=None):
     rand[:, lowcut:highcut] = np.random.normal(0, 1, 
                 size=(M, highcut-lowcut, 2)).view(np.complex).squeeze()
     W = np.dot(rand, dft).real
-    W /= np.std(W, axis=1).reshape(-1, 1)
+    W /= la.norm(W, axis=0).reshape(1, -1)
+    W /= np.std(W, axis=1).reshape(-1, 1) # original
+#     W /= la.norm(W, axis=1).reshape(-1, 1)
     return W
 
 
@@ -337,6 +341,7 @@ def V1_inspired_weights_for_center(N, t, l, m, random_state=None):
     K = V1_inspired_kernel_matrix(N, t, l, m)
     L = la.cholesky(K)
     W = np.dot(L, np.random.randn(N))
+#     W /= la.norm(W, axis=0) # original didn't have this
     return W
 
 def V1_inspired_weights(M, N, t, l, random_state=None):
