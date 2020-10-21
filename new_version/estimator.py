@@ -267,7 +267,7 @@ class RFClassifier(BaseEstimator, ClassifierMixin):
 #     return W
 
 
-def V1_inspired_kernel_matrix(N, t, l, m):
+def V1_inspired_kernel_matrix(N, t, l, m, scale=1):
     """
     Generates the (N x N) kernel matrix for Gaussian Process with non-stationary 
     covariance. This kernel matrix will be used to generate random 
@@ -303,12 +303,13 @@ def V1_inspired_kernel_matrix(N, t, l, m):
     a = squareform(pdist(grid, 'sqeuclidean'))
     b = la.norm(grid - m, axis=1) ** 2
     c = b.reshape(-1, 1)
-    K = 10 * np.exp(-a / (2 * l ** 2)) * np.exp(-b / (2 * t ** 2)) * np.exp(-c / (2 * t ** 2))
+    K = np.exp(-a / (2 * l ** 2)) * np.exp(-b / (2 * t ** 2)) * np.exp(-c / (2 * t ** 2))
     K += 1e-5 * np.eye(N)
+    K *= (scale * N / np.trace(K))
     return K
 
 
-def V1_inspired_weights_for_center(N, t, l, m, random_state=None):
+def V1_inspired_weights_for_center(N, t, l, m, scale=1, random_state=None):
     """
     Generates a random weight for one given center by sampling a 
     non-stationary Gaussian Process.
@@ -338,13 +339,12 @@ def V1_inspired_weights_for_center(N, t, l, m, random_state=None):
         A random weight
     """
     np.random.seed(random_state)
-    K = V1_inspired_kernel_matrix(N, t, l, m)
+    K = V1_inspired_kernel_matrix(N, t, l, m, scale)
     L = la.cholesky(K)
     W = np.dot(L, np.random.randn(N))
-#     W /= la.norm(W, axis=0) # original didn't have this
     return W
 
-def V1_inspired_weights(M, N, t, l, random_state=None):
+def V1_inspired_weights(M, N, t, l, scale=1, random_state=None):
     """
     Generate random weights inspired by the tuning properties of the 
     neurons in Primary Visual Cortex (V1).
@@ -382,7 +382,7 @@ def V1_inspired_weights(M, N, t, l, random_state=None):
 
     W = np.empty(shape=(0, N))
     for m in centers:
-        w = V1_inspired_weights_for_center(N, t, l, m, 
+        w = V1_inspired_weights_for_center(N, t, l, m, scale,
                                             random_state=random_state)
         W = np.row_stack((W, w.T))
     return W
@@ -554,7 +554,9 @@ def parallelized_clf(RFClassifier, params, X_train, y_train, X_test, y_test, n_i
 
 def classical_covariance_matrix(N, scale=1):
     """
-    Generates the (N x N) covariance matrix for Gaussian Process with identity covariance. This kernel matrix will be used to generate random weights that are traditionally used in kernel methods.
+    Generates the (N x N) covariance matrix for Gaussian Process with identity covariance. 
+    This kernel matrix will be used to generate random weights that are traditionally used 
+    in kernel methods.
 
     K(x, y) = \delta_{xy}
 
@@ -603,50 +605,18 @@ def classical_weights(M, N, scale=1, random_state=None):
     """
     np.random.seed(random_state)
     C = classical_covariance_matrix(N, scale)
-    W = np.multivariate_normal(np.zeros(N), C, M)
+    L = la.cholesky(C)
+    W = np.dot(L, np.random.randn(N, M)).T
     return W
-
-
-def haltere_covariance_fun(x, y, N, lowcut, highcut):
-    '''
-    Covariance function of the GP inspired by the STAs of mechanosensory neurons in insect halteres.
-
-    k(t, t') = \mathbb{E}[w(t)^T w(t')] =  \sum_{j=0}^{N-1} \lambda_j \cos{\dfrac{i 2 \pi j (t-t')}{N}}
-    \lambda_j = \begin{cases} 1 & a \leq b \\ 0 & otherwise \end{cases}
-
-    Parameters
-    ----------
-
-    x : float
-        input
-
-    y : float
-        input
-
-    N : int
-        dimension of the vector input
-
-    lowcut : int
-        lower end of the frequency band
-
-    highcut : int
-        high end of the frequency band
-
-    Returns
-    -------
-    c : float
-        kernel distance between two inputs
-    '''
-    j = np.arange(0, N - 1, 1)
-    lamda = np.zeros_like(j)
-    lamda[lowcut:highcut] = 1
-    c = np.sum(lamda * np.cos(2 * np.pi * j * (x - y)/ N))
-    return c
 
 
 def haltere_covariance_matrix(N, lowcut, highcut, scale=1):
     '''
-    Generates the (N x N) covariance matrix for Gaussain Process inspired by the STAs of mechanosensory neurons in insect halteres.
+    Generates the (N x N) covariance matrix for Gaussain Process inspired by the STAs 
+    of mechanosensory neurons in insect halteres.
+    
+    $$k(t, t') = \mathbb{E}[w(t)^T w(t')] =  \sum_{j=0}^{N-1} \lambda_j \cos{\dfrac{i 2 \pi j (t-t')}{N}} $$
+    $$ \lambda_j = \begin{cases} 1 & a \leq b \\ 0 & otherwise \end{cases}$$
 
     Parameters
     ----------
@@ -665,12 +635,18 @@ def haltere_covariance_matrix(N, lowcut, highcut, scale=1):
     C : array-like of shape (N, N) 
         Covariance matrix
     '''
+    lamda = np.zeros(N)
+    lamda[lowcut:highcut] = 1
+    
+    grid = np.arange(0, N)
+    yy, xx = np.meshgrid(grid, grid)
+    diff = xx - yy
+    
     C = np.zeros((N, N))
-    for i in range(N):
-        for j in range(N):
-            C[i, j] = haltere_covariance_fun(i, j, N, lowcut, highcut)
-    # constrain matrix trace to be N * scale
-    diag = np.diag(np.sqrt(scale / np.diag(C)))
+    for j in range(N):
+        C += lamda[j] * np.cos(2 * np.pi * j * diff / N)
+    C += 1e-5 * np.eye(N)
+    diag = np.diag(np.sqrt(scale/np.diag(C)))
     C = diag @ C @ diag
     return C
 
@@ -706,13 +682,47 @@ def haltere_inspired_weights(M, N, lowcut, highcut, scale=1, random_state=None):
     """
     np.random.seed(random_state)
     C = haltere_covariance_matrix(N, lowcut, highcut, scale)
-    W = np.multivariate_normal(np.zeros(N), C, M)
+    L = la.cholesky(C)
+    W = np.dot(L, np.random.randn(N, M)).T
     return W
 
     
+def V1_weights_multiple_scales(M, N, scale=1, random_state=None):
+    """
+    Generate random weights inspired by the tuning properties of the 
+    neurons in Primary Visual Cortex (V1). The spatial frequency are of 
+    different scales.
+
+    Parameters
+    ----------
+
+    M : int
+        Number of random weights
+
+    N : int
+        Number of features
+
+    random_state : int, default=None
+        Used to set the seed when generating random weights.
+
+    Returns
+    -------
+
+    W : array-like of shape (M, N)
+        Random weights.
+
+    """
+    np.random.seed(random_state)
+    centers = np.random.randint(int(np.sqrt(N)), size=(M, 2))
+    params = np.random.uniform(2, 8, M)
+
+    W = np.empty(shape=(0, N))
+    for i, m in enumerate(centers):
+        w = V1_inspired_weights_for_center(N, params[i], params[i], m, scale,
+                                            random_state=random_state)
+        W = np.row_stack((W, w.T))
+    return W
     
-    
-    
-    
+   
     
     

@@ -18,5 +18,7 @@ __pycache__/
 /data
 /new_version/data
 /new_version/results
+*.png
+*.pickle
 # dask
 dask-worker-space/
