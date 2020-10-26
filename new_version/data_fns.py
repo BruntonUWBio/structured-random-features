@@ -185,7 +185,7 @@ def frequency_XOR(n_samples, fs, k1, k2, signal_duration, a,
     return X, y
 
 
-def load_mnist(data_path='./data/mnist'):
+def load_mnist(data_path='./data/mnist/'):
     """
     Loads the MNIST handwritten digits data. There are 60k training
     images and 10k testing images. Each image is (28, 28). The digits 
@@ -383,7 +383,7 @@ def load_omniglot(data_path='./data/omniglot-py/'):
         data_dict = pickle.load(handle)
     return data_dict['data'], data_dict['labels']
 
-def load_fashion_mnist(data_path='./data/fashion_MNIST'):
+def load_fashion_mnist(data_path='./data/fashion_mnist/'):
     """
     Loads the fashion MNIST dataset. There are 60k training
     images and 10k testing images. Each image is (28, 28). There are 10
@@ -391,8 +391,8 @@ def load_fashion_mnist(data_path='./data/fashion_MNIST'):
 
     Parameters
     ----------
-    data_path : string, default='./data/fashion_MNIST'
-        Path to the fashion_MNIST folder.
+    data_path : string, default='./data/fashion_mnists'
+        Path to the fashion_mnist folder.
     
     Returns
     -------

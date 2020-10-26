@@ -714,7 +714,8 @@ def V1_weights_multiple_scales(M, N, scale=1, random_state=None):
     """
     np.random.seed(random_state)
     centers = np.random.randint(int(np.sqrt(N)), size=(M, 2))
-    params = np.random.uniform(2, 8, M)
+#     params = np.random.uniform(2, 8, (M, 2))
+    params = np.random.choice([2, 5, 8], M)
 
     W = np.empty(shape=(0, N))
     for i, m in enumerate(centers):
