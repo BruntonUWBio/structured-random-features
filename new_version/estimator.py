@@ -282,10 +282,10 @@ def V1_inspired_kernel_matrix(N, t, l, m, scale=1):
         Number of features 
 
     t : float
-        Determines the spatial frequency of the random weights
+        Determines the width of the random weights 
 
     l : float
-        Determines the width of the random weights 
+        Determines the spatial frequency of the random weights  
     
     m : tuple (2, 1)
         Determines the center of the random weights.
@@ -321,10 +321,10 @@ def V1_inspired_weights_for_center(N, t, l, m, scale=1, random_state=None):
         Number of features 
 
     t : float
-        Determines the spatial frequency of the random weights
+        Determines the width of the random weights
 
     l : float
-        Determines the width of the random weights 
+        Determines the spatial frequency of the random weights 
     
     m : tuple (2, 1)
         Determines the center of the random weights.
@@ -359,10 +359,10 @@ def V1_inspired_weights(M, N, t, l, scale=1, random_state=None):
         Number of features
     
     t : float
-        Determines the spatial frequency of the random weights
+        Determines the width of the random weights
 
     l : float
-        Determines the width of the random weights 
+        Determines the spatial frequency of the random weights 
     
     m : tuple (2, 1)
         Determines the center of the random weights.
@@ -723,7 +723,43 @@ def V1_weights_multiple_scales(M, N, scale=1, random_state=None):
                                             random_state=random_state)
         W = np.row_stack((W, w.T))
     return W
+
+
+def V1_inspired_weights_same_center(M, N, t, l, m, scale=1, random_state=None):
+    """
+    Generates M random weights for one given center by sampling a 
+    non-stationary Gaussian Process.
+
+    Parameters
+    ----------
+
+    M: int
+        Number of random weights
+
+    N : int
+        Number of features 
+
+    t : float
+        Determines the width of the random weights
+
+    l : float
+        Determines the spatial frequency of the random weights 
     
-   
-    
+    m : tuple (2, 1)
+        Determines the center of the random weights.
+
+     random_state : int, default=None
+        Used to set the seed when generating random weights.
+
+    Returns
+    -------
+
+    W : (array-like) of shape (M, N)
+        Random weights
+    """
+    np.random.seed(random_state)
+    K = V1_inspired_kernel_matrix(N, t, l, m, scale)
+    L = la.cholesky(K)
+    W = np.dot(L, np.random.randn(N, M)).T
+    return W    
     
