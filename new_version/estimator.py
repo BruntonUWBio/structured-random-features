@@ -512,6 +512,9 @@ def parallelized_clf(RFClassifier, params, X_train, y_train, X_test, y_test, n_i
         
     n_iters : int
         Number of times to run the RFClassifer on train data
+        
+    return_clf: bool
+        returns the weights of the classifier if 'True'
    
    
    Returns
