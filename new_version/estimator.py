@@ -765,4 +765,94 @@ def V1_inspired_weights_same_center(M, N, t, l, m, scale=1, random_state=None):
     L = la.cholesky(K)
     W = np.dot(L, np.random.randn(N, M)).T
     return W    
+
+def haltere_covariance_matrix_decay(N, lowcut, highcut, decay_coef, scale=1):
+    '''
+    Generates the (N x N) covariance matrix for Gaussain Process inspired by the STAs 
+    of mechanosensory neurons in insect halteres. Decaying sinusoids
     
+    $$k(t, t') = \mathbb{E}[w(t)^T w(t')] =  \sum_{j=0}^{N-1} \lambda_j \cos{\dfrac{i 2 \pi j (t-t')}{N}} * exp((- \|t- N - 1\|^2 + \|t'- N - 1\|^2) / a ** 2) $$
+    $$ \lambda_j = \begin{cases} 1 & lowcut \leq highcut \\ 0 & otherwise \end{cases}$$
+
+    Parameters
+    ----------
+
+    N: int
+        Number of features
+    
+    lowcut: int
+        low end of the frequency band filter
+
+    highcut : int
+        high end of the frequency band filter
+        
+    decay_coef : float
+        controls the how fast the random features decay
+    
+    scale: float
+        Normalization factor for Tr norm of cov matrix
+    
+    Returns
+    -------
+    C : array-like of shape (N, N) 
+        Covariance matrix
+    '''
+    
+    lamda = np.zeros(N)
+    lamda[lowcut:highcut] = 1
+
+    grid = np.arange(0, N)
+    yy, xx = np.meshgrid(grid, grid)
+    diff = xx - yy
+
+    # sinusoidal part
+    C_cos = np.zeros((N, N))
+    for j in range(lowcut, highcut):
+        C_cos += lamda[j] * np.cos(2 * np.pi * j * diff / N)
+
+    # exponential part
+    C_exp = np.exp(((xx - N) + (yy - N)) / decay_coef ** 2)
+
+    # final covariance matrix
+    C = C_cos * C_exp 
+    C *= (scale * N / np.trace(C))
+    C += 1e-5 * np.eye(N)
+    return C
+
+def decaying_haltere_inspired_weights(M, N, lowcut, highcut, decay_coef, scale=1, random_state=None):
+    """
+    Generates random weights with tuning similar to mechanosensory 
+    neurons in insect halteres.
+
+    Parameters
+    ----------
+
+    M : int
+        Number of random weights
+
+    N : int
+        Number of features
+
+    lowcut: int
+        Low end of the frequency band. 
+
+    highcut: int
+        High end of the frequency band.
+        
+    decay_coef : float
+        controls the how fast the random features decay
+    
+    random_state : int, default=None
+        Used to set the seed when generating random weights.
+    
+    Returns
+    -------
+
+    W : array-like of shape (M, N)
+        Random weights.
+    """
+    np.random.seed(random_state)
+    C = haltere_covariance_matrix_decay(N, lowcut, highcut, decay_coef, scale)
+    L = la.cholesky(C)
+    W = np.dot(L, np.random.randn(N, M)).T
+    return W
