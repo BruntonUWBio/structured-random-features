@@ -267,7 +267,7 @@ class RFClassifier(BaseEstimator, ClassifierMixin):
 #     return W
 
 
-def V1_inspired_kernel_matrix(N, t, l, m, scale=1):
+def V1_inspired_kernel_matrix(N, s, f, center, scale=1):
     """
     Generates the (N x N) kernel matrix for Gaussian Process with non-stationary 
     covariance. This kernel matrix will be used to generate random 
@@ -281,13 +281,13 @@ def V1_inspired_kernel_matrix(N, t, l, m, scale=1):
     N : int
         Number of features 
 
-    t : float
-        Determines the width of the random weights 
+    s : float
+        Determines the size of the random weights 
 
-    l : float
+    f : float
         Determines the spatial frequency of the random weights  
     
-    m : tuple (2, 1)
+    center : tuple (2, 1)
         Determines the center of the random weights.
 
     Returns
@@ -301,15 +301,15 @@ def V1_inspired_kernel_matrix(N, t, l, m, scale=1):
     grid = np.column_stack((xx.flatten(), yy.flatten()))
     
     a = squareform(pdist(grid, 'sqeuclidean'))
-    b = la.norm(grid - m, axis=1) ** 2
+    b = la.norm(grid - center, axis=1) ** 2
     c = b.reshape(-1, 1)
-    K = np.exp(-a / (2 * l ** 2)) * np.exp(-b / (2 * t ** 2)) * np.exp(-c / (2 * t ** 2))
+    K = np.exp(-a / (2 * f ** 2)) * np.exp(-b / (2 * s ** 2)) * np.exp(-c / (2 * s ** 2))
     K += 1e-5 * np.eye(N)
     K *= (scale * N / np.trace(K))
     return K
 
 
-def V1_inspired_weights_for_center(N, t, l, m, scale=1, random_state=None):
+def V1_inspired_weights_for_center(N, s, f, center, scale=1, random_state=None):
     """
     Generates a random weight for one given center by sampling a 
     non-stationary Gaussian Process.
@@ -320,13 +320,13 @@ def V1_inspired_weights_for_center(N, t, l, m, scale=1, random_state=None):
     N : int
         Number of features 
 
-    t : float
-        Determines the width of the random weights
+    s : float
+        Determines the size of the random weights
 
-    l : float
+    f : float
         Determines the spatial frequency of the random weights 
     
-    m : tuple (2, 1)
+    center : tuple (2, 1)
         Determines the center of the random weights.
 
      random_state : int, default=None
@@ -339,12 +339,12 @@ def V1_inspired_weights_for_center(N, t, l, m, scale=1, random_state=None):
         A random weight
     """
     np.random.seed(random_state)
-    K = V1_inspired_kernel_matrix(N, t, l, m, scale)
+    K = V1_inspired_kernel_matrix(N, s, f, center, scale)
     L = la.cholesky(K)
     W = np.dot(L, np.random.randn(N))
     return W
 
-def V1_inspired_weights(M, N, t, l, scale=1, random_state=None):
+def V1_inspired_weights(M, N, s, f, scale=1, random_state=None):
     """
     Generate random weights inspired by the tuning properties of the 
     neurons in Primary Visual Cortex (V1).
@@ -358,14 +358,11 @@ def V1_inspired_weights(M, N, t, l, scale=1, random_state=None):
     N : int
         Number of features
     
-    t : float
-        Determines the width of the random weights
+    s : float
+        Determines the size of the random weights
 
-    l : float
+    f : float
         Determines the spatial frequency of the random weights 
-    
-    m : tuple (2, 1)
-        Determines the center of the random weights.
 
     random_state : int, default=None
         Used to set the seed when generating random weights.
@@ -381,8 +378,8 @@ def V1_inspired_weights(M, N, t, l, scale=1, random_state=None):
     centers = np.random.randint(int(np.sqrt(N)), size=(M, 2))
 
     W = np.empty(shape=(0, N))
-    for m in centers:
-        w = V1_inspired_weights_for_center(N, t, l, m, scale,
+    for center in centers:
+        w = V1_inspired_weights_for_center(N, s, f, center, scale,
                                             random_state=random_state)
         W = np.row_stack((W, w.T))
     return W
@@ -728,7 +725,7 @@ def V1_weights_multiple_scales(M, N, scale=1, random_state=None):
     return W
 
 
-def V1_inspired_weights_same_center(M, N, t, l, m, scale=1, random_state=None):
+def V1_inspired_weights_same_center(M, N, s, f, center, scale=1, random_state=None):
     """
     Generates M random weights for one given center by sampling a 
     non-stationary Gaussian Process.
@@ -742,13 +739,13 @@ def V1_inspired_weights_same_center(M, N, t, l, m, scale=1, random_state=None):
     N : int
         Number of features 
 
-    t : float
-        Determines the width of the random weights
+    s : float
+        Determines the size of the random weights
 
-    l : float
+    f : float
         Determines the spatial frequency of the random weights 
     
-    m : tuple (2, 1)
+    center : tuple (2, 1)
         Determines the center of the random weights.
 
      random_state : int, default=None
@@ -761,7 +758,7 @@ def V1_inspired_weights_same_center(M, N, t, l, m, scale=1, random_state=None):
         Random weights
     """
     np.random.seed(random_state)
-    K = V1_inspired_kernel_matrix(N, t, l, m, scale)
+    K = V1_inspired_kernel_matrix(N, s, f, center, scale)
     L = la.cholesky(K)
     W = np.dot(L, np.random.randn(N, M)).T
     return W    
@@ -771,7 +768,7 @@ def haltere_covariance_matrix_decay(N, lowcut, highcut, decay_coef, scale=1):
     Generates the (N x N) covariance matrix for Gaussain Process inspired by the STAs 
     of mechanosensory neurons in insect halteres. Decaying sinusoids
     
-    $$k(t, t') = \mathbb{E}[w(t)^T w(t')] =  \sum_{j=0}^{N-1} \lambda_j \cos{\dfrac{i 2 \pi j (t-t')}{N}} * exp((- \|t- N - 1\|^2 + \|t'- N - 1\|^2) / a ** 2) $$
+    $$k(t, t') = \mathbb{E}[w(t)^T w(t')] =  \sum_{j=0}^{N-1} \lambda_j \cos{\dfrac{i 2 \pi j (t-t')}{N}} * exp((- \|t- N - 1\| + \|t'- N - 1\|) / a ** 2) $$
     $$ \lambda_j = \begin{cases} 1 & lowcut \leq highcut \\ 0 & otherwise \end{cases}$$
 
     Parameters

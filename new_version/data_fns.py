@@ -417,5 +417,63 @@ def load_fashion_mnist(data_path='./data/fashion_mnist/'):
     return train, train_labels, test, test_labels
 
 
+def load_V1_Ringach(data_dir='data/V1_data_Ringach/', centered=True, normalized=True):
+    '''
+    Loads the V1 receptive fields dataset given by Dario Ringach in the paper. In the data, 
+    the RF sizes are different from 32 x 32, 64 x 64, and 128 x 128. We resize them to 
+    32 x 32 for analysis. 
+    
+    Ref: 'Spatial structure and symmetry of simple-cell receptive fields in 
+    macaque primary visual cortex'
+    
+    Parameters
+    ----------
+    data_dir: string, default='./data/V1_data_Ringach/' 
+    Path to the receptive field data folder
+    
+    centered: bool, default=True
+    If True, centers the receptive fields to (16, 16) pixel coordinate.
+    
+    normalized: bool, default=True
+    If True, the mean of RF values is 0 and std dev is 1. 
+    '''
+    
+    import scipy.io as sio
+    from skimage.transform import downscale_local_mean
+    from scipy import ndimage
+    
+    RF_ringach = sio.loadmat(data_dir + 'rf_db.mat')['rf']
+    num_cells = RF_ringach.shape[1]
+    dim_to_reshape = 32  # reshape rf to 32 x 32 images
+    
+    processed_RF = np.zeros((num_cells, dim_to_reshape ** 2)) 
+    for i in range(num_cells):
+        cell_rf = RF_ringach[0][i][0]
+        
+        # normalize
+        if normalized == True:
+            cell_rf = (cell_rf - np.mean(cell_rf)) / np.std(cell_rf)
+        
+        # resize
+        resize_factor = int(cell_rf.shape[0] / dim_to_reshape)
+        cell_rf_scaled = downscale_local_mean(cell_rf, (resize_factor, resize_factor))
+        
+        if centered == True:
+            # calculate the center of mass
+            center_of_mass = ndimage.measurements.center_of_mass(np.abs(cell_rf_scaled) ** 3)
+            center_of_mass = np.round(center_of_mass).astype('int')
+            
+            
+            # translate rf to (15, 15) but wrap around
+            cell_rf_scaled_centered = np.roll(cell_rf_scaled, 16 - center_of_mass[0], axis=0)
+            cell_rf_scaled_centered = np.roll(cell_rf_scaled_centered, 16 - center_of_mass[1], axis=1)
+            processed_RF[i] = cell_rf_scaled_centered.flatten()
+            
+        elif centered == False:
+            processed_RF[i] = cell_rf_scaled.flatten()
+            
+        
+    return processed_RF
+
 
 
