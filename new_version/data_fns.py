@@ -429,13 +429,18 @@ def load_V1_Ringach(data_dir='data/V1_data_Ringach/', centered=True, normalized=
     Parameters
     ----------
     data_dir: string, default='./data/V1_data_Ringach/' 
-    Path to the receptive field data folder
+        Path to the receptive field data folder
     
     centered: bool, default=True
-    If True, centers the receptive fields to (16, 16) pixel coordinate.
+        If True, centers the receptive fields to (16, 16) pixel coordinate.
     
     normalized: bool, default=True
-    If True, the mean of RF values is 0 and std dev is 1. 
+        If True, the mean of RF values is 0 and std dev is 1. 
+    
+    Returns
+    -------
+    processed_RF:  (array-like) of shape (250, 1024)
+        Receptive fields of 250 neurons
     '''
     
     import scipy.io as sio
@@ -474,6 +479,68 @@ def load_V1_Ringach(data_dir='data/V1_data_Ringach/', centered=True, normalized=
             
         
     return processed_RF
+
+
+def load_V1_Marius(data_dir='data/V1_data_Marius/', normalized=True, centered=True):
+    '''
+    Loads the V1 receptive fields dataset given by Marius Pachitariu. 70k neurons were
+    shown 5000 naturalistic images in random order in 3 trials. In the data, 
+    the RF sizes are 24 x 27. We normalize them and center them for analysis.
+    
+    Parameters
+    ----------
+    data_dir: string, default='.data/V1_data_Marius/' 
+        Path to the receptive field data folder
+    
+    centered: bool, default=True
+        If True, centers the receptive fields to (12, 13) pixel coordinate using
+        the image's center of mass.
+    
+    normalized: bool, default=True
+        If True, the mean of RF values is set to 0 and std dev is set to 1. 
+    
+    Returns
+    -------
+    processed_RFs: (array-like) of shape (3, 69957, 24 * 27)
+        Receptive fieds of ~70k neurons from 3 trials.
+        
+    '''
+    
+    import numpy as np
+    from scipy import ndimage
+
+    # load data
+    with np.load(data_dir + 'rf3x_TX61.npz') as data:
+        RF_Marius = data['rf']
+        xpos = data['xpos']
+        y_pos = data['ypos']
+        snr = data['snr']
+    
+    num_trials, num_cells, xdim, ydim = RF_Marius.shape
+    processed_RF = np.zeros((num_trials, num_cells, xdim * ydim))
+
+    for trial in range(num_trials):
+        for cell in range(num_cells):
+            cell_rf = RF_Marius[trial, cell]
+            
+            # normalize
+            if normalized == True:
+                cell_rf = (cell_rf - np.mean(cell_rf)) / np.std(cell_rf)
+                
+            # center
+            if centered == True:
+                center_of_mass = ndimage.measurements.center_of_mass(np.abs(cell_rf) ** 5)
+                center_of_mass = np.round(center_of_mass).astype('int')
+                
+                # translate to (12, 13) but wrap around
+                cell_rf_centered = np.roll(cell_rf, 12 - center_of_mass[0], axis=0)
+                cell_rf_centered = np.roll(cell_rf_centered, 13 - center_of_mass[1], axis=1)
+                processed_RF[trial, cell] = cell_rf_centered.flatten()
+            
+            elif centered == False:
+                processed_RF[trial, cell] = cell_rf.flatten()
+                
+    return processed_RF, snr 
 
 
 

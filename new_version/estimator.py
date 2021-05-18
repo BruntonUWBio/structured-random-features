@@ -269,7 +269,7 @@ class RFClassifier(BaseEstimator, ClassifierMixin):
 
 def V1_inspired_kernel_matrix(N, s, f, center, scale=1):
     """
-    Generates the (N x N) kernel matrix for Gaussian Process with non-stationary 
+    Generates the kernel matrix for Gaussian Process with non-stationary 
     covariance. This kernel matrix will be used to generate random 
     features inspired from the receptive-fields of V1 neurons.
 
@@ -278,8 +278,10 @@ def V1_inspired_kernel_matrix(N, s, f, center, scale=1):
     Parameters
     ----------
 
-    N : int
-        Number of features 
+    N : int, tuple of length 2
+        Dimensions of random features.
+        int for square features of size sqrt(N) x sqrt(N)
+        tuple for features of size N[0] x N[1]
 
     s : float
         Determines the size of the random weights 
@@ -293,19 +295,33 @@ def V1_inspired_kernel_matrix(N, s, f, center, scale=1):
     Returns
     -------
 
-    K : array-like of shape (N, N)
+    K : array-like of shape (N, N) or (N[1] * N[2], N[1] * N[2])
         Kernel matrix
     """
-    x = np.arange(np.sqrt(N))
-    yy, xx = np.meshgrid(x, x)
-    grid = np.column_stack((xx.flatten(), yy.flatten()))
     
+    from scipy.spatial.distance import pdist, squareform
+    
+    # for random features of size sqrt(N) x sqrt(N)
+    if type(N) is int:
+        x = np.arange(np.sqrt(N))
+        yy, xx = np.meshgrid(x, x)
+        dim = N
+
+    # for random features of size N[0] x N[1]
+    elif type(N) is tuple:
+        x = np.arange(N[0])
+        y = np.arange(N[1])
+        yy, xx = np.meshgrid(x, y)
+        dim = N[0] * N[1]
+
+    grid = np.column_stack((xx.flatten(), yy.flatten()))
+
     a = squareform(pdist(grid, 'sqeuclidean'))
     b = la.norm(grid - center, axis=1) ** 2
     c = b.reshape(-1, 1)
     K = np.exp(-a / (2 * f ** 2)) * np.exp(-b / (2 * s ** 2)) * np.exp(-c / (2 * s ** 2))
-    K += 1e-5 * np.eye(N)
-    K *= (scale * N / np.trace(K))
+    K += 1e-5 * np.eye(dim)
+    K *= (scale * dim / np.trace(K))
     return K
 
 
@@ -341,7 +357,14 @@ def V1_inspired_weights_for_center(N, s, f, center, scale=1, random_state=None):
     np.random.seed(random_state)
     K = V1_inspired_kernel_matrix(N, s, f, center, scale)
     L = la.cholesky(K)
-    W = np.dot(L, np.random.randn(N))
+    
+    if type(N) is int:
+        dim = N
+    
+    if type(N) is tuple:
+        dim = N[0] * N[1]
+    
+    W = np.dot(L, np.random.randn(dim))
     return W
 
 def V1_inspired_weights(M, N, s, f, scale=1, random_state=None):
@@ -375,6 +398,14 @@ def V1_inspired_weights(M, N, s, f, scale=1, random_state=None):
 
     """
     np.random.seed(random_state)
+    
+       
+    if type(N) is int:
+        centers = np.random.randint(int(np.sqrt(N)), size=(M, 2))
+    
+    if type(N) is tuple:
+        centers = np.random.randint((N[0], N[1]), size=(M, 2))
+
     centers = np.random.randint(int(np.sqrt(N)), size=(M, 2))
 
     W = np.empty(shape=(0, N))
@@ -758,9 +789,16 @@ def V1_inspired_weights_same_center(M, N, s, f, center, scale=1, random_state=No
         Random weights
     """
     np.random.seed(random_state)
+    if type(N) is int:
+        dim = N
+    
+    if type(N) is tuple:
+        dim = N[0] * N[1]
+        
+    
     K = V1_inspired_kernel_matrix(N, s, f, center, scale)
     L = la.cholesky(K)
-    W = np.dot(L, np.random.randn(N, M)).T
+    W = np.dot(L, np.random.randn(dim, M)).T
     return W    
 
 def haltere_covariance_matrix_decay(N, lowcut, highcut, decay_coef, scale=1):
