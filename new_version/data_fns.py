@@ -543,4 +543,123 @@ def load_V1_Marius(data_dir='data/V1_data_Marius/', normalized=True, centered=Tr
     return processed_RF, snr 
 
 
+def load_V1_Marius_DHT(data_dir = 'data/V1_data_Marius/', centered=True, normalized=True):
+    '''
+    Loads the V1 receptive fields dataset given by Marius Pachitariu. 4k neurons were
+    shown hartley basis functions repeatedly and their RFs were calculated. In the data, 
+    the RF sizes are 30 x 80. We normalize the RFs and center them for analysis.
+    
+    Parameters
+    ----------
+    data_dir: string, default='.data/V1_data_Marius/' 
+        Path to the receptive field data folder
+    
+    centered: bool, default=True
+        If True, centers the receptive fields to (15, 40) pixel coordinate using
+        the image's center of mass.
+    
+    normalized: bool, default=True
+        If True, the mean of RF values is set to 0 and std dev is set to 1. 
+    
+    Returns
+    -------
+    processed_RFs: (array-like) of shape (4337, 2400)
+        Receptive fieds of ~4k neurons.
+        
+    '''
+    
+    import numpy as np
+    from scipy import ndimage
+    
+    # load data
+    with np.load(data_dir + 'rf_DHT.npz') as data:
+        RF_Marius = data['rf']
+        snr = data['snr']
+    
+    xdim, ydim, num_cells = RF_Marius.shape
+    processed_RF = np.zeros((num_cells, xdim * ydim))
+    
+    for cell in range(num_cells):
+        cell_rf = RF_Marius[:, :, cell]
+
+        # normalize
+        if normalized == True:
+            cell_rf = (cell_rf - np.mean(cell_rf)) / np.std(cell_rf)
+
+        # center
+        if centered == True:
+            center_of_mass = ndimage.measurements.center_of_mass(np.abs(cell_rf) ** 5)
+            center_of_mass = np.round(center_of_mass).astype('int')
+
+            # translate to (15, 40) but wrap around
+            cell_rf_centered = np.roll(cell_rf, 15 - center_of_mass[0], axis=0)
+            cell_rf_centered = np.roll(cell_rf_centered, 40 - center_of_mass[1], axis=1)
+            processed_RF[cell] = cell_rf_centered.flatten()
+
+        elif centered == False:
+            processed_RF[cell] = cell_rf.flatten()
+            
+    return processed_RF, snr 
+
+def load_V1_Marius_whitenoise(data_dir = 'data/V1_data_Marius/', centered=True, normalized=True):
+    '''
+    Loads the V1 receptive fields dataset given by Marius Pachitariu. 44k neurons were
+    shown white noise repeatedly and their RFs were calculated. In the data, 
+    the RF sizes are 14 x 36. We normalize the RFs and center them for analysis.
+    
+    Parameters
+    ----------
+    data_dir: string, default='.data/V1_data_Marius/' 
+        Path to the receptive field data folder
+    
+    centered: bool, default=True
+        If True, centers the receptive fields to (7, 18) pixel coordinate using
+        the image's center of mass.
+    
+    normalized: bool, default=True
+        If True, the mean of RF values is set to 0 and std dev is set to 1. 
+    
+    Returns
+    -------
+    processed_RFs: (array-like) of shape (45026, 504)
+        Receptive fieds of ~45k neurons.
+        
+    '''
+    
+    import numpy as np
+    from scipy import ndimage
+    
+    # load data
+    with np.load(data_dir + 'rf_white.npz') as data:
+        RF_Marius = data['rf']
+        snr = data['snr']
+    
+    num_cells, xdim, ydim = RF_Marius.shape
+    center = (xdim/2, ydim/2)
+    processed_RF = np.zeros((num_cells, xdim * ydim))
+    
+    for cell in range(num_cells):
+        cell_rf = RF_Marius[cell, :, :]
+
+        # normalize
+        if normalized == True:
+            cell_rf = (cell_rf - np.mean(cell_rf)) / np.std(cell_rf)
+
+        # center
+        if centered == True:
+            center = (int(xdim / 2), int(ydim / 2))
+            center_of_mass = ndimage.measurements.center_of_mass(np.abs(cell_rf) ** 5)
+            center_of_mass = np.round(center_of_mass).astype('int')
+
+            # translate to center but wrap around
+            cell_rf_centered = np.roll(cell_rf, center[0] - center_of_mass[0], axis=0)
+            cell_rf_centered = np.roll(cell_rf_centered, center[1] - center_of_mass[1], axis=1)
+            processed_RF[cell] = cell_rf_centered.flatten()
+
+        elif centered == False:
+            processed_RF[cell] = cell_rf.flatten()
+            
+    return processed_RF, snr, (xdim, ydim)
+
+
 

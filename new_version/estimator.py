@@ -278,7 +278,7 @@ def V1_inspired_kernel_matrix(N, s, f, center, scale=1):
     Parameters
     ----------
 
-    N : int, tuple of length 2
+    N : int or tuple of length 2
         Dimensions of random features.
         int for square features of size sqrt(N) x sqrt(N)
         tuple for features of size N[0] x N[1]
@@ -311,7 +311,7 @@ def V1_inspired_kernel_matrix(N, s, f, center, scale=1):
     elif type(N) is tuple:
         x = np.arange(N[0])
         y = np.arange(N[1])
-        yy, xx = np.meshgrid(x, y)
+        yy, xx = np.meshgrid(y, x)
         dim = N[0] * N[1]
 
     grid = np.column_stack((xx.flatten(), yy.flatten()))
