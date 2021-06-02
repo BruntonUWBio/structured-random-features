@@ -504,6 +504,12 @@ def load_V1_Marius(data_dir='data/V1_data_Marius/', normalized=True, centered=Tr
     processed_RFs: (array-like) of shape (3, 69957, 24 * 27)
         Receptive fieds of ~70k neurons from 3 trials.
         
+    snr: (array-like) of shape (69957, 1)
+        SNR of receptive fields
+    
+    (xdim, ydim): tuple of shape (2, 1)
+        Dimension of the receptive fields
+        
     '''
     
     import numpy as np
@@ -540,7 +546,7 @@ def load_V1_Marius(data_dir='data/V1_data_Marius/', normalized=True, centered=Tr
             elif centered == False:
                 processed_RF[trial, cell] = cell_rf.flatten()
                 
-    return processed_RF, snr 
+    return processed_RF, snr, (xdim, ydim) 
 
 
 def load_V1_Marius_DHT(data_dir = 'data/V1_data_Marius/', centered=True, normalized=True):
@@ -565,6 +571,12 @@ def load_V1_Marius_DHT(data_dir = 'data/V1_data_Marius/', centered=True, normali
     -------
     processed_RFs: (array-like) of shape (4337, 2400)
         Receptive fieds of ~4k neurons.
+    
+    snr: (array-like) of shape (4337, 1)
+        SNR of receptive fields
+
+    (xdim, ydim): tuple of shape (2, 1)
+        Dimension of the receptive fields
         
     '''
     
@@ -599,7 +611,7 @@ def load_V1_Marius_DHT(data_dir = 'data/V1_data_Marius/', centered=True, normali
         elif centered == False:
             processed_RF[cell] = cell_rf.flatten()
             
-    return processed_RF, snr 
+    return processed_RF, snr, (xdim, ydim)
 
 def load_V1_Marius_whitenoise(data_dir = 'data/V1_data_Marius/', centered=True, normalized=True):
     '''
@@ -623,6 +635,12 @@ def load_V1_Marius_whitenoise(data_dir = 'data/V1_data_Marius/', centered=True, 
     -------
     processed_RFs: (array-like) of shape (45026, 504)
         Receptive fieds of ~45k neurons.
+        
+    snr: (array-like) of shape (45026, 1)
+        SNR of receptive fields
+
+    (xdim, ydim): tuple of shape (2, 1)
+        Dimension of the receptive fields
         
     '''
     
