@@ -30,7 +30,7 @@ data: requirements
 
 ## create data directories since we ignore it in git by default. Not created if
 ## already exists
-	mkdir -p ata/raw
+	mkdir -p data/raw
 	mkdir -p data/processed
 	mkdir -p data/interim
 	mkdir -p data/external
