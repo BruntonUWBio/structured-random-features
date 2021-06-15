@@ -28,11 +28,12 @@ requirements: test_environment
 ## Make Dataset
 data: requirements
 
-## create data directories since we ignore it in git by default
-	mkdir data/raw
-	mkdir data/processed
-	mkdir data/interim
-	mkdir data/external
+## create data directories since we ignore it in git by default. Not created if
+## already exists
+	mkdir -p ata/raw
+	mkdir -p data/processed
+	mkdir -p data/interim
+	mkdir -p data/external
 
 
 ## Download dataset for Brandon Pratt, extract and remove zip file
