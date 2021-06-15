@@ -16,8 +16,7 @@ __pycache__/
 # results
 /figures
 /data
-/new_version/data
-/new_version/results
+/results
 *.png
 *.pickle
 # dask

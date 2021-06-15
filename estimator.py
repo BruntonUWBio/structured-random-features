@@ -406,7 +406,7 @@ def V1_inspired_weights(M, N, s, f, scale=1, random_state=None):
     if type(N) is tuple:
         centers = np.random.randint((N[0], N[1]), size=(M, 2))
 
-    centers = np.random.randint(int(np.sqrt(N)), size=(M, 2))
+    # centers = np.random.randint(int(np.sqrt(N)), size=(M, 2))
 
     W = np.empty(shape=(0, N))
     for center in centers:
