@@ -27,6 +27,14 @@ requirements: test_environment
 
 ## Make Dataset
 data: requirements
+
+## create data directories since we ignore it in git by default
+	mkdir data/raw
+	mkdir data/processed
+	mkdir data/interim
+	mkdir data/external
+
+
 ## Download dataset for Brandon Pratt, extract and remove zip file
 	@echo ">>> Downloading wing sensilla data:"
 	gdown -O data/raw/sensilla_Pratt.zip https://drive.google.com/uc?id=1Gp9ULrPAjvI3RneweJaRvz2Ed-BvzMSB
@@ -39,7 +47,7 @@ data: requirements
 	gdown -O data/raw/rf_natural_images_Marius.npz  https://drive.google.com/uc?id=1LfWqaQP-8AT2L5nc6dz_Ou-6sYWE-f80
 	gdown -O data/raw/rf_Ringach.mat  https://drive.google.com/uc?id=1at_Neu_p0pPCMhuSRwWmc9J1hAsPPiY7
 
-## Install the src module.
+## Install the src package. This is our code.
 	$(PYTHON_INTERPRETER) setup.py install
 
 ## Preprocess datasets
