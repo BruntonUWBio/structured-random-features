@@ -39,7 +39,9 @@ data: requirements
 	gdown -O data/raw/rf_natural_images_Marius.npz  https://drive.google.com/uc?id=1LfWqaQP-8AT2L5nc6dz_Ou-6sYWE-f80
 	gdown -O data/raw/rf_Ringach.mat  https://drive.google.com/uc?id=1at_Neu_p0pPCMhuSRwWmc9J1hAsPPiY7
 
-	
+## Install the src module.
+	$(PYTHON_INTERPRETER) setup.py install
+
 ## Preprocess datasets
 	$(PYTHON_INTERPRETER) src/data/make_dataset.py data/raw data/processed
 
