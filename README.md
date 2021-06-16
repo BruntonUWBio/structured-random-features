@@ -55,3 +55,23 @@ Project Organization
 --------
 
 <p><small>Project based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>. #cookiecutterdatascience</small></p>
+
+
+Steps:
+1. Do a clean pull of the repository. Go inside the repo.
+        cd \path\to\random_features\
+        
+2. Make a virtual Conda environment. We will be using python version 3.8.
+	conda create --name random_features python=3.8
+	
+3. Activate the new conda environment
+	conda activate random_features
+	
+4.  Run the make file to download all the datasets and preprocess.
+         make data
+         
+5.  The notebooks should work. 
+
+6. Before you install new package, git commit. Then, run to make sure it doesn’t break dependencies. If everything is well, add it to the requirements.txt file.
+
+Remark: Always working in the newly created conda environment. Pls read the cookiecutter docs for best practices. 
