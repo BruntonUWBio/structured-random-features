@@ -35,21 +35,21 @@ data: requirements
 	mkdir -p data/interim
 	mkdir -p data/external
 
-
 ## Download dataset for Brandon Pratt, extract and remove zip file
-	@echo ">>> Downloading wing sensilla data:"
-	gdown -O data/raw/sensilla_Pratt.zip https://drive.google.com/uc?id=1Gp9ULrPAjvI3RneweJaRvz2Ed-BvzMSB
-	unzip data/raw/sensilla_Pratt.zip -d data/raw/sensilla_Pratt && rm data/raw/sensilla_Pratt.zip
+# 	@echo ">>> Downloading wing sensilla data:"
+# 	gdown -O data/raw/sensilla_Pratt.zip https://drive.google.com/uc?id=1Gp9ULrPAjvI3RneweJaRvz2Ed-BvzMSB
+# 	unzip data/raw/sensilla_Pratt.zip -d data/raw/sensilla_Pratt && rm data/raw/sensilla_Pratt.zip
 
-## Download all V1 datasets
-	@echo ">>> Downloading V1 data:"
-	gdown -O data/raw/rf_whitenoise_Marius.npz https://drive.google.com/uc?id=1b9H5yfB8q3jxG6Nmuab00b-7NIVKvT0_
-	gdown -O data/raw/rf_DHT_Marius.npz https://drive.google.com/uc?id=1tYZvreiO1_r8ZE9Lsraq9J-tt0qXyksa
-	gdown -O data/raw/rf_natural_images_Marius.npz  https://drive.google.com/uc?id=1LfWqaQP-8AT2L5nc6dz_Ou-6sYWE-f80
-	gdown -O data/raw/rf_Ringach.mat  https://drive.google.com/uc?id=1at_Neu_p0pPCMhuSRwWmc9J1hAsPPiY7
+# ## Download all V1 datasets
+# 	@echo ">>> Downloading V1 data:"
+# 	gdown -O data/raw/rf_whitenoise_Marius.npz https://drive.google.com/uc?id=1b9H5yfB8q3jxG6Nmuab00b-7NIVKvT0_
+# 	gdown -O data/raw/rf_DHT_Marius.npz https://drive.google.com/uc?id=1tYZvreiO1_r8ZE9Lsraq9J-tt0qXyksa
+# 	gdown -O data/raw/rf_natural_images_Marius.npz  https://drive.google.com/uc?id=1LfWqaQP-8AT2L5nc6dz_Ou-6sYWE-f80
+# 	gdown -O data/raw/rf_Ringach.mat  https://drive.google.com/uc?id=1at_Neu_p0pPCMhuSRwWmc9J1hAsPPiY7
 
 ## Install the src package. This is our code.
-	$(PYTHON_INTERPRETER) setup.py install
+# $(PYTHON_INTERPRETER) setup.py install
+	$(PYTHON_INTERPRETER) -m pip install -e .
 
 ## Preprocess datasets
 	$(PYTHON_INTERPRETER) src/data/make_dataset.py data/raw data/processed
