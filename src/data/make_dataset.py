@@ -31,13 +31,13 @@ def main(input_filepath, output_filepath):
     logger.info('Processing Ringach V1 data:')
     preprocess.extract_V1_rf_Ringach(input_filepath, output_filepath)
 
-    ## Download MNIST dataset
-    logger.info('Downloading MNIST data:')
-    preprocess.download_MNIST(output_filepath)
-
     ## Download KMNIST dataset
     logger.info('Downloading KMNIST data:')
     preprocess.download_KMNIST(output_filepath)
+
+    ## Download MNIST dataset
+    logger.info('Downloading MNIST data:')
+    preprocess.download_MNIST(output_filepath)
 
 
 if __name__ == '__main__':
