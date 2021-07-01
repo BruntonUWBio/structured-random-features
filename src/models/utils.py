@@ -3,6 +3,7 @@ import torch
 
 def train(log_interval, device, model, train_loader, optimizer, epoch, verbose=True):
     model.train()
+    loss_list = []
     for batch_idx, (data, target) in enumerate(train_loader):
         optimizer.zero_grad()
         output = model(data.to(device))
@@ -10,11 +11,14 @@ def train(log_interval, device, model, train_loader, optimizer, epoch, verbose=T
         loss.backward()
         optimizer.step()
         
+        loss_list.append(loss.item())
         if verbose == True and batch_idx % log_interval == 0:
             print('Train_epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(epoch, batch_idx * len(data), len(train_loader.dataset),
             100. * batch_idx / len(train_loader), loss.item()))
+    return loss_list
+        
             
-def test(model, device, test_loader):
+def test(model, device, test_loader, verbose=True):
     model.eval()
     test_loss = 0
     correct = 0
@@ -28,5 +32,7 @@ def test(model, device, test_loader):
         test_loss /= len(test_loader.dataset)
         test_accuracy = 100 * correct / len(test_loader.dataset)
     
-    print('\nTest set: Average loss: {:.6f}. Accuracy: {}/{} ({:.2f}%)\n'.format(test_loss, correct, len(test_loader.dataset), test_accuracy))
+    if verbose == True:
+        print('\nTest set: Average loss: {:.6f}. Accuracy: {}/{} ({:.2f}%)\n'.format(test_loss, correct, 
+                                                                                     len(test_loader.dataset), test_accuracy))
     return test_accuracy
