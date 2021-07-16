@@ -1,13 +1,13 @@
 import torch.nn.functional as F
 import torch
 
-def train(log_interval, device, model, train_loader, optimizer, epoch, verbose=True):
+def train(log_interval, device, model, train_loader, optimizer, epoch, loss_fn=F.cross_entropy, verbose=True):
     model.train()
     loss_list = []
     for batch_idx, (data, target) in enumerate(train_loader):
         optimizer.zero_grad()
         output = model(data.to(device))
-        loss = F.cross_entropy(output, target.to(device))
+        loss = loss_fn(output, target.to(device))
         loss.backward()
         optimizer.step()
         
@@ -18,14 +18,14 @@ def train(log_interval, device, model, train_loader, optimizer, epoch, verbose=T
     return loss_list
         
             
-def test(model, device, test_loader, verbose=True):
+def test(model, device, test_loader, loss_fn=F.cross_entropy, verbose=True):
     model.eval()
     test_loss = 0
     correct = 0
     with torch.no_grad():
         for batch_idx, (data, target) in enumerate(test_loader):
             output = model(data.to(device))
-            test_loss += F.cross_entropy(output, target.to(device), reduction='sum')
+            test_loss += loss_fn(output, target.to(device), reduction='sum')
             pred = output.argmax(dim=1, keepdim=True)
             correct += pred.eq(target.to(device).view_as(pred)).sum().item()
 

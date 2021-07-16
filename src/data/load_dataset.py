@@ -8,7 +8,7 @@ import torch
 from torch.utils.data import random_split, DataLoader, TensorDataset
 from torchvision import datasets, transforms
 
-data_dir = path.abspath(path.join(__file__, "../../.."))
+data_dir = path.abspath(path.join(__file__, "../../../"))
 data_dir += '/data/processed/'
 
 def load_sensilla_sta():
