@@ -81,6 +81,11 @@ target/
 /data/interim/*
 /data/external/*
 
+# exclude results
+*.pickle
+*.pdf
+*.png
+
 # Mac OS-specific storage files
 .DS_Store
 
