@@ -29,7 +29,6 @@ def load_sensilla_sta():
     sta_time_window: float
         Length of time for the STA (seconds) 
     """
-    print(data_dir)
     data_path = data_dir + 'STA_sensilla.pickle'
     assert path.exists(data_path), 'STA data doesnt exist in data/processed. Check src/data/processing.py'
     outputs = np.load(data_path, allow_pickle=True)
