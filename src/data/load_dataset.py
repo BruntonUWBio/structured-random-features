@@ -255,6 +255,7 @@ def generate_frequency_detection(num_samples, sampling_rate, freq, duration, snr
     # noise for positive egs
     rand = np.random.normal(loc=0, scale=1, size=(N, n_pos, 2)).view(complex).squeeze(axis=2)
     rand /= np.abs(rand)
+    rand[freq] = 0. # don't add noise to the signal component
     noise = np.sqrt(2) * noise_amplitude / np.sqrt(N - 1) * (A @ rand).T.real
     X_pos += noise
 
