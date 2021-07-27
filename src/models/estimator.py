@@ -115,13 +115,19 @@ class RFClassifier(BaseEstimator, ClassifierMixin):
         self 
         
         """
-        n_features = X.shape[1]
+        # 1d or 2d
+        if len(X.shape) == 2:
+            n_features = X.shape[1]
+        elif len(X.shape) == 3:
+            n_features = X.shape[1:]
+            X = X.reshape(-1, n_features[0] * n_features[1]) # flatten images
+        
         if self.kwargs is not None:
             self.W_ = self.weight_fun(self.width, n_features, 
-                                        **self.kwargs, random_state=self.random_state)
+                                        **self.kwargs, seed=self.random_state)
         else:
             self.W_ = self.weight_fun(self.width, n_features, 
-                            random_state=self.random_state)
+                            seed=self.random_state)
 
         self.b_ = self.bias
         self.H_ = self.nonlinearity(np.dot(X, self.W_.T) + self.b_)
@@ -169,6 +175,9 @@ class RFClassifier(BaseEstimator, ClassifierMixin):
             and n_features is the number of features.
         """
         check_is_fitted(self, ["W_", "b_"])
+        if len(X.shape) == 3:
+            n_features = X.shape[1:]
+            X = X.reshape(-1, X.shape[1] * X.shape[2])
         H = self.nonlinearity(np.dot(X, self.W_.T) + self.b_)
         return H
 
