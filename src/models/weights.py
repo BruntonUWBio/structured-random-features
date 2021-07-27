@@ -49,7 +49,7 @@ def sensilla_covariance_matrix(dim, lowcut, highcut, decay_coef=np.inf, scale=1)
         C_cos += lamda[j] * np.cos(2 * np.pi * j * diff / dim)
 
     # exponential part
-    C_exp = np.exp(((xx - dim) + (yy - dim)) / decay_coef ** 2)
+    C_exp = np.exp(((xx - dim) + (yy - dim)) / decay_coef)
 
     # final covariance matrix
     C = C_cos * C_exp 
@@ -143,13 +143,86 @@ def V1_covariance_matrix(dim, size, spatial_freq, center, scale=1):
     return C
 
 
+
+
+
+def classical_covariance_matrix(dim, scale=1):
+    """
+    Generates the covariance matrix for Gaussian Process with identity covariance. 
+    This matrix will be used to generate random weights that are traditionally used 
+    in kernel methods.
+
+    C(x, y) = \delta_{xy}
+
+    Parameters
+    ----------
+
+    dim: int or tuple (2, 1)
+        dimension of each weight
+        int for time-series, tuple for images 
+
+    scale: float, default=1
+        Normalization factor for Tr norm of cov matrix
+
+    Returns
+    -------
+
+    C : array-like of shape (dim, dim) or (dim[0] * dim[1], dim[0] * dim[1])
+        covariance matrix w/ Tr norm = scale * dim[0] * dim[1]
+    """
+    if type(dim) is tuple:
+        C = np.eye(dim[0] * dim[1]) * scale
+
+    elif type(dim) is int:
+        C = np.eye(dim) * scale
+    return C
+
+
+def shift_pad(img, y_shift, x_shift):
+    '''
+    Given an image, we shift every pixel by x_shift and y_shift. We zero pad the portion
+    that ends up outside the original frame. We think of the origin of the image
+    as its top left. The co-ordinate frame is the matrix kind, where (a, b) means
+    ath row and bth column.
+    
+    Parameters
+    ----------
+    img: array-like
+        image to shift
+        
+    y_shift: int
+        Pixel shift in the vertical direction
+        
+    x_shift: int
+        Pixel shift in the horizontal direction
+    
+    Returns
+    -------
+    img_shifted: array-like with the same shape as img
+        Shifted and zero padded image
+
+    '''
+    img_shifted = np.roll(img, x_shift, axis=1)
+    img_shifted = np.roll(img_shifted, y_shift, axis=0)
+    
+    if y_shift > 0:
+        img_shifted[:y_shift, :] = 0
+    if y_shift < 0:
+        img_shifted[y_shift:, :] = 0
+    if x_shift > 0:
+        img_shifted[:, :x_shift] = 0
+    if x_shift < 0:
+        img_shifted[:, x_shift:] = 0
+    return img_shifted
+    
+
 def V1_weights(num_weights, dim, size, spatial_freq, center=None, scale=1, seed=None):
     """
     Generate random weights inspired by the tuning properties of the 
     neurons in Primary Visual Cortex (V1).
 
     If a value is given for the center, all generated weights have the same center
-    If value is set to None, the centeres randomly cover the RF space
+    If value is set to None, the centers randomly cover the RF space
 
     Parameters
     ----------
@@ -184,49 +257,26 @@ def V1_weights(num_weights, dim, size, spatial_freq, center=None, scale=1, seed=
 
     """
     np.random.seed(seed)
-    if center == None: # centers uniformly cover the receptive field space
-        W = np.zeros((num_weights, dim[0] * dim[1]))
+    if center == None: # centers uniformly cover the visual field
+        # first generate centered weights
+        c = (int(dim[0]/ 2), int(dim[1]/2)) # center of the visual field
+        C = V1_covariance_matrix(dim, size, spatial_freq, c, scale) 
+        W_centered = np.random.multivariate_normal(mean=np.zeros(dim[0] * dim[1]), cov=C, size=num_weights)
+        W_centered = W_centered.reshape(-1, dim[0], dim[1])
+        
+        # shift around to uniformly cover the visual field
         centers = np.random.randint((dim[0], dim[1]), size=(num_weights, 2))
-        for i, c in enumerate(centers):
-            C = V1_covariance_matrix(dim, size, spatial_freq, c, scale)
-            W[i] = np.random.multivariate_normal(mean=np.zeros(dim[0] * dim[1]), cov=C, size=1)
- 
+        shifts = centers - c
+        W = np.zeros_like(W_centered)
+        for i, [y_shift, x_shift] in enumerate(shifts):
+            W[i] = shift_pad(W_centered[i], y_shift, x_shift)
+        W = W.reshape(-1, dim[0] * dim[1])
+
     elif center != None:
         C = V1_covariance_matrix(dim, size, spatial_freq, center, scale)
         W = np.random.multivariate_normal(mean=np.zeros(dim[0] * dim[1]), cov=C, size=num_weights)
+        
     return W
-
-
-def classical_covariance_matrix(dim, scale=1):
-    """
-    Generates the covariance matrix for Gaussian Process with identity covariance. 
-    This matrix will be used to generate random weights that are traditionally used 
-    in kernel methods.
-
-    C(x, y) = \delta_{xy}
-
-    Parameters
-    ----------
-
-    dim: int or tuple (2, 1)
-        dimension of each weight
-        int for time-series, tuple for images 
-
-    scale: float, default=1
-        Normalization factor for Tr norm of cov matrix
-
-    Returns
-    -------
-
-    C : array-like of shape (dim, dim) or (dim[0] * dim[1], dim[0] * dim[1])
-        covariance matrix w/ Tr norm = scale * dim[0] * dim[1]
-    """
-    if type(dim) is tuple:
-        C = np.eye(dim[0] * dim[1]) * scale
-
-    elif type(dim) is int:
-        C = np.eye(dim) * scale
-    return C
 
 
 def classical_weights(num_weights, dim, scale=1, seed=None):
