@@ -3,7 +3,7 @@ import numpy.linalg as la
 from scipy.spatial.distance import pdist, squareform
 
 
-def sensilla_covariance_matrix(dim, lowcut, highcut, decay_coef=np.inf, scale=1):
+def sensilla_covariance_matrix(dim, sampling_rate, duration, lowcut, highcut, decay_coef=np.inf, scale=1):
     '''
     Generates the (dim x dim) covariance matrix for Gaussain Process inspired by the STAs 
     of mechanosensory neurons in insect halteres. Decaying sinusoids.
@@ -16,15 +16,18 @@ def sensilla_covariance_matrix(dim, lowcut, highcut, decay_coef=np.inf, scale=1)
 
     dim: int
         dimension of each random weight
+        
+    sampling_rate : int
+        Sampling rate of the weights in Hz
     
     lowcut: int
-        low end of the frequency band filter
+        low end of the frequency band in Hz
 
     highcut : int
-        high end of the frequency band filter
+        high end of the frequency band in Hz
         
     decay_coef : float, default=np.inf
-        controls the how fast the random features decay
+        controls the window of the weights in seconds
         With default value, the weights do not decay
     
     scale: float
@@ -35,21 +38,24 @@ def sensilla_covariance_matrix(dim, lowcut, highcut, decay_coef=np.inf, scale=1)
     C : array-like of shape (dim, dim) 
         Covariance matrix w/ Tr norm = scale * dim
     '''
-    
-    lamda = np.zeros(dim)
-    lamda[lowcut:highcut] = 1
 
-    grid = np.arange(0, dim)
+
+    assert dim == int(sampling_rate * duration), "The dim of weights does not match sampling rate * duration"
+
+    # time grid
+    grid = np.arange(0, duration, 1 / sampling_rate)
     yy, xx = np.meshgrid(grid, grid)
     diff = xx - yy
 
-    # sinusoidal part
+    # cosine part
+    low_idx = int(duration * lowcut)
+    high_idx = int(duration * highcut)
     C_cos = np.zeros((dim, dim))
-    for j in range(lowcut, highcut):
-        C_cos += lamda[j] * np.cos(2 * np.pi * j * diff / dim)
+    for k in range(low_idx, high_idx):
+        C_cos += np.cos(2 * np.pi * k * diff / duration)
 
     # exponential part
-    C_exp = np.exp(((xx - dim) + (yy - dim)) / decay_coef)
+    C_exp = np.exp(((xx - duration) + (yy - duration)) / decay_coef)
 
     # final covariance matrix
     C = C_cos * C_exp 
@@ -57,7 +63,7 @@ def sensilla_covariance_matrix(dim, lowcut, highcut, decay_coef=np.inf, scale=1)
     C += 1e-5 * np.eye(dim)
     return C
 
-def sensilla_weights(num_weights, dim, lowcut, highcut, decay_coef=np.inf, scale=1, seed=None):
+def sensilla_weights(num_weights, dim, sampling_rate, duration, lowcut, highcut, decay_coef=np.inf, scale=1, seed=None):
     """
     Generates random weights with tuning similar to mechanosensory 
     neurons found in insect halteres and wings.
@@ -71,15 +77,18 @@ def sensilla_weights(num_weights, dim, lowcut, highcut, decay_coef=np.inf, scale
     dim : int
         dim of each random weight
 
+    sampling_rate : int
+        Sampling rate of the weights
+    
     lowcut: int
-        Low end of the frequency band. 
+        low end of the frequency band in Hz
 
-    highcut: int
-        High end of the frequency band.
+    highcut : int
+        high end of the frequency band in Hz
         
     decay_coef : float, default=np.inf
-        controls the how fast the random features decay
-        with default value, the weights do not decay
+        controls the window of the weights in seconds
+        With default value, the weights do not decay
     
     seed : int, default=None
         Used to set the seed when generating random weights.
@@ -90,8 +99,9 @@ def sensilla_weights(num_weights, dim, lowcut, highcut, decay_coef=np.inf, scale
     W : array-like of shape (num_weights, dim)
         Matrix of Random weights.
     """
+    assert dim == int(sampling_rate * duration), "The dim of weights does not match sampling rate * duration"
     np.random.seed(seed)
-    C = sensilla_covariance_matrix(dim, lowcut, highcut, decay_coef, scale)
+    C = sensilla_covariance_matrix(dim, sampling_rate, duration, lowcut, highcut, decay_coef, scale)
     W = np.random.multivariate_normal(np.zeros(dim), cov=C, size=num_weights)
     return W
 

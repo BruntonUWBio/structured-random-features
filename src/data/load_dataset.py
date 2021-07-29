@@ -202,6 +202,10 @@ def generate_frequency_detection(num_samples, sampling_rate, freq, duration, snr
     Generate frequency detection task. The positive examples are pure
     sinusoids with additive gaussian noise and the negative examples are 
     white noise. The examples are generated using the DFT matrix.
+    
+    The squared L2 norm of the generated examples over the interval
+    duration is 1. 
+    \int^duration_0 x^2 dx = 1
 
     Parameters
     ----------
@@ -210,11 +214,10 @@ def generate_frequency_detection(num_samples, sampling_rate, freq, duration, snr
         Number of total examples
 
     sampling_rate : int
-        Sampling rate of the signal
+        Sampling rate of the signal in Hz
     
     freq : int
-        Column of the DFT matrix. The frequency of the signal is 
-        int(freq /  duration)).
+        Frequency of the signal in Hz
 
     duration: float
         Length of the signal in seconds.
@@ -242,28 +245,29 @@ def generate_frequency_detection(num_samples, sampling_rate, freq, duration, snr
     noise_amplitude = np.sqrt(1 - snr ** 2)
 
     # dft matrix
-    A = scipy.linalg.dft(N, scale=None)
+    A = scipy.linalg.dft(N, scale='sqrtn')
+    idx = int(freq * duration) # row of DFT matrix that corresponds to the frequency
 
     # positive examples
     n_pos = int(num_samples / 2)
     c = np.zeros((N, n_pos), dtype='complex')
     rand = np.random.normal(loc=0, scale=1, size=(n_pos, 2)).view(complex).flatten()
     rand /= np.abs(rand)
-    c[freq] = rand
-    X_pos = np.sqrt(2) * snr * (A @ c).T.real
+    c[idx] = rand
+    X_pos = np.sqrt(2 / duration) * snr * (A @ c).T.real
 
     # noise for positive egs
     rand = np.random.normal(loc=0, scale=1, size=(N, n_pos, 2)).view(complex).squeeze(axis=2)
     rand /= np.abs(rand)
-    rand[freq] = 0. # don't add noise to the signal component
-    noise = np.sqrt(2) * noise_amplitude / np.sqrt(N - 1) * (A @ rand).T.real
+    rand[idx] = 0. # don't add noise to the signal component
+    noise = np.sqrt(2 / ((N-1) * duration)) * noise_amplitude * (A @ rand).T.real
     X_pos += noise
 
     # negative egs
     n_neg = int(num_samples / 2)
     c = np.random.normal(loc=0, scale=1, size=(N, n_neg, 2)).view(complex).squeeze(axis=2)
     c /= np.abs(c)
-    X_neg = np.sqrt(2) * (A @ c).T.real / np.sqrt(N)
+    X_neg = np.sqrt(2 / (N * duration)) * (A @ c).T.real
 
     # concatenate and shuffle
     X = np.vstack((X_pos, X_neg))
@@ -285,11 +289,10 @@ def load_frequency_detection(num_samples, sampling_rate, freq, duration, snr, tr
         Number of total examples
 
     sampling_rate : int
-        Sampling rate of the signal
+        Sampling rate of the signal in Hz
     
     freq : int
-        Column of the DFT matrix. The frequency of the signal is 
-        int(freq /  duration)).
+        Frequency of the signal in Hz
 
     duration: float
         Length of the signal in seconds.
@@ -340,6 +343,10 @@ def generate_frequency_XOR(num_samples, sampling_rate, freq1, freq2, duration, s
     Generates a frequency XOR task. The positive eg are single
     frequency sinusoids (2 frequencies) with additive gaussian noise. 
     The negative eg are mixed sinusoids or white noise.
+    
+    The squared L2 norm of the generated examples over the interval
+    duration is 1. 
+    \int^duration_0 x^2 dx = 1
 
     Parameters
     ----------
@@ -348,15 +355,13 @@ def generate_frequency_XOR(num_samples, sampling_rate, freq1, freq2, duration, s
         Number of total examples
 
     sampling_rate : int
-        Sampling rate of the signal
+        Sampling rate of the signal in Hz
     
     freq1 : int
-        Column of the DFT matrix. The frequency of the signal is 
-        int(freq1 /  duration)).
+        Frequency 1 of the signal in Hz
 
     freq2 : int
-        Column of the DFT matrix. The frequency of the signal is
-        int(freq2 /  duration)). 
+        Frequency 2 of the signal in Hz
 
     duration: float
         Length of the signal in seconds.
@@ -388,24 +393,28 @@ def generate_frequency_XOR(num_samples, sampling_rate, freq1, freq2, duration, s
     noise_amplitude = np.sqrt(1 - snr ** 2)
 
     #dft matrix
-    A = scipy.linalg.dft(N, scale=None)
+    A = scipy.linalg.dft(N, scale='sqrtn')
+    idx1 = int(duration * freq1) # row of DFT matrix that corresponds to the frequency
+    idx2 = int(duration * freq2)
 
     # positive examples
     n_pos = int(num_samples/2)
     c = np.zeros((N, n_pos), dtype='complex')
     rand = np.random.normal(loc=0, scale=1, size=(int(n_pos/ 2), 2)).view(complex).flatten()
     rand /= np.abs(rand)
-    c[freq1, :int(n_pos/2)] = rand
+    c[idx1, :int(n_pos/2)] = rand
 
     rand = np.random.normal(loc=0, scale=1, size=(int(n_pos/ 2), 2)).view(complex).flatten()
     rand /= np.abs(rand)
-    c[freq2, int(n_pos/2):] = rand
-    X_pos = np.sqrt(2) * snr * (A @ c).T.real
+    c[idx2, int(n_pos/2):] = rand
+    X_pos = np.sqrt(2 / duration) * snr * (A @ c).T.real
 
     # noise for positive egs
     rand = np.random.normal(loc=0, scale=1, size=(N, n_pos, 2)).view(complex).squeeze(axis=2)
     rand /= np.abs(rand)
-    noise = np.sqrt(2) * noise_amplitude / np.sqrt(N - 1) * (A @ rand).T.real
+    rand[idx1, :int(n_pos/2)] = 0. # don't add noise for signal frequency
+    rand[idx2, int(n_pos/2):] = 0.
+    noise = np.sqrt(2 / ((N-1) * duration)) * noise_amplitude * (A @ rand).T.real
     X_pos += noise
 
     # negative egs
@@ -416,18 +425,19 @@ def generate_frequency_XOR(num_samples, sampling_rate, freq1, freq2, duration, s
     rand = np.random.normal(loc=0, scale=1, size=(1, int(n_neg/2), 2)).view(complex).squeeze(axis=2)
     rand /= np.abs(rand)
     c[[freq1, freq2]] = rand
-    X_mixed = snr * (A @ c).T.real
+    X_mixed = np.sqrt(1 / duration) * snr * (A @ c).T.real
 
     # noise for mixed egs
     rand = np.random.normal(loc=0, scale=1, size=(N, int(n_neg/2), 2)).view(complex).squeeze(axis=2)
     rand /= np.abs(rand)
-    noise = np.sqrt(2) * noise_amplitude / np.sqrt(N - 2) * (A @ rand).T.real
+    rand[[idx1, idx2]] = 0.
+    noise = np.sqrt(2 / ((N-2) * duration)) * noise_amplitude * (A @ rand).T.real
     X_mixed += noise
 
     # noise as negative egs
     c = np.random.normal(loc=0, scale=1, size=(N, int(n_neg/2), 2)).view(complex).squeeze(axis=2)
     c /= np.abs(c)
-    X_noise = np.sqrt(2) * (A @ c).T.real / np.sqrt(N)
+    X_noise = np.sqrt(2 / (N * duration)) * (A @ c).T.real
     
     X_neg = np.row_stack((X_mixed, X_noise))
     
@@ -452,15 +462,13 @@ def load_frequency_XOR(num_samples, sampling_rate, freq1, freq2, duration, snr, 
         Number of total examples
 
     sampling_rate : int
-        Sampling rate of the signal
+        Sampling rate of the signal in Hz
     
     freq1 : int
-        Column of the DFT matrix. The frequency of the signal is 
-        int(freq1 /  duration)).
+        Frequency 1 of the signal in Hz
 
     freq2 : int
-        Column of the DFT matrix. The frequency of the signal is
-        int(freq2 /  duration)). 
+        Frequency 2 of the signal in Hz
 
     duration: float
         Length of the signal in seconds.
