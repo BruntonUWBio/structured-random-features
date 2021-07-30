@@ -424,7 +424,7 @@ def generate_frequency_XOR(num_samples, sampling_rate, freq1, freq2, duration, s
     c = np.zeros((N, int(n_neg/2)), dtype='complex')
     rand = np.random.normal(loc=0, scale=1, size=(1, int(n_neg/2), 2)).view(complex).squeeze(axis=2)
     rand /= np.abs(rand)
-    c[[freq1, freq2]] = rand
+    c[[idx1, idx2]] = rand
     X_mixed = np.sqrt(1 / duration) * snr * (A @ c).T.real
 
     # noise for mixed egs
