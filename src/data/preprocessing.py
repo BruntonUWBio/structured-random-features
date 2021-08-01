@@ -146,7 +146,7 @@ def extract_V1_rf_whitenoise(input_filepath, output_filepath, centered=True):
     with open(output_filepath + '/rf_whitenoise{}.pickle'.format(centered * '_centered'), 'wb') as handle:
         pickle.dump(output_dict, handle, protocol=pickle.HIGHEST_PROTOCOL) 
 
-   
+
 def extract_V1_rf_natural_images(input_filepath, output_filepath, centered=True):
     """
     Loads the V1 receptive fields dataset given by Marius Pachitariu. 70k neurons were
