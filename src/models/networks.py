@@ -135,9 +135,11 @@ def alexnet(pretrained: bool = False, structured: bool = False,
         if isinstance(m, nn.Conv2d):
             if structured:
                 V1_init(m.weight, bias=True)
-                
+            else:
+                classical_init(m.weight, bias=True)
     
     model = AlexNet(structured=structured, **kwargs)
+    model.apply(init_weights)
     if pretrained:
         state_dict = load_state_dict_from_url(model_urls['alexnet'],
                                               progress=progress)
