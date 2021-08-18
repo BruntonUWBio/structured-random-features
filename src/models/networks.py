@@ -126,15 +126,15 @@ def alexnet(pretrained: bool = False, structured: bool = False,
     def init_weights(m):
         '''
         Only update the Conv2d layers
-        from https://stackoverflow.com/questions/49433936/how-to-initialize-weights-in-pytorch/49433937#49433937
         '''
         if isinstance(m, nn.Conv2d):
             if structured:
-                V1_init(m.weight, bias=True)
+                # idea: could make size & freq scale with conv dimensions
+                V1_init(m.weight, size=5, spatial_freq=2, bias=True)
             else:
                 classical_init(m.weight, bias=True)
     
-    model = AlexNet(structured=structured, **kwargs)
+    model = AlexNet(**kwargs)
     model.apply(init_weights)
     if pretrained:
         state_dict = load_state_dict_from_url('https://download.pytorch.org/models/alexnet-owt-7be5be79.pth', progress=progress)
