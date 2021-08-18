@@ -72,10 +72,6 @@ class classical_RFNet(nn.Module):
         beta = self.clf(h)
         return beta.squeeze()
 
-model_urls = {
-    'alexnet': 'https://download.pytorch.org/models/alexnet-owt-7be5be79.pth',
-}
-
 
 class AlexNet(nn.Module):
 
@@ -141,7 +137,6 @@ def alexnet(pretrained: bool = False, structured: bool = False,
     model = AlexNet(structured=structured, **kwargs)
     model.apply(init_weights)
     if pretrained:
-        state_dict = load_state_dict_from_url(model_urls['alexnet'],
-                                              progress=progress)
+        state_dict = load_state_dict_from_url('https://download.pytorch.org/models/alexnet-owt-7be5be79.pth', progress=progress)
         model.load_state_dict(state_dict)
     return model
