@@ -124,4 +124,5 @@ def classical_init(layer, scale=1, bias=False, seed=None):
         
     if bias == False:
         layer.bias = None
+        # else, do nothing
 
