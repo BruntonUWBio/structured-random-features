@@ -76,11 +76,16 @@ def V1_init(layer, size, spatial_freq, center=None, scale=1., bias=False, seed=N
         Used to set the seed when generating random weights.
     """
     classname = layer.__class__.__name__
-    assert layer.in_channels == 1, 'This init only works when image has 1 input channel'
-    assert classname.find('Conv2d') != -1,'This init only works for conv2d layers'
-    out_channels, in_channels, xdim, ydim = layer.weight.shape  
-    v1_weight =  V1_weights(out_channels, (xdim, ydim), size, spatial_freq, center, scale, seed=seed)
-    layer.weight.data = Tensor(v1_weight.reshape(out_channels, 1, xdim, ydim))
+    assert classname.find('Conv2d') != -1, 'This init only works for Conv layers'
+
+    out_channels, in_channels, xdim, ydim = layer.weight.shape
+    data = layer.weight.data.numpy()
+    for chan in range(in_channels):
+        W =  V1_weights(out_channels, (xdim, ydim),
+                        size, spatial_freq, center, scale, seed=seed)
+        data[:, chan, :, :] = W.reshape(out_channels, xdim, ydim)
+    layer.weight.data = Tensor(data)
+
     if bias == False:
         layer.bias = None
 
@@ -117,10 +122,12 @@ def classical_init(layer, scale=1, bias=False, seed=None):
         layer.weight.data = Tensor(classical_weight)
         
     elif classname.find('Conv2d') == 1:
-        assert layer.in_channels == 1, 'This init only works when image has 1 input channel'
         out_channels, in_channels, xdim, ydim = layer.weight.shape
-        classical_weight = classical_weights(out_channels, (xdim, ydim), scale, seed=seed)
-        layer.weight.data = Tensor(classical_weight.reshape(out_channels, 1, xdim, ydim))
+        data = layer.weight.data.numpy()
+        for chan in range(in_channels):
+            W = classical_weights(out_channels, (xdim, ydim), scale, seed=seed)
+            data[:, chan, :, :] = W.reshape(out_channels, xdim, ydim)
+        layer.weight.data = Tensor(data)
         
     if bias == False:
         layer.bias = None

@@ -153,9 +153,6 @@ def V1_covariance_matrix(dim, size, spatial_freq, center, scale=1):
     return C
 
 
-
-
-
 def classical_covariance_matrix(dim, scale=1):
     """
     Generates the covariance matrix for Gaussian Process with identity covariance. 
@@ -291,7 +288,7 @@ def V1_weights(num_weights, dim, size, spatial_freq, center=None, scale=1, seed=
 
 def classical_weights(num_weights, dim, scale=1, seed=None):
     """"
-    Generates classical random weights with identity covariance. W ~ N(0, 1).
+    Generates classical random weights with identity covariance W ~ N(0, I).
 
     Parameters
     ----------

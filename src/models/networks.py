@@ -1,7 +1,8 @@
 import numpy as np
 import torch
 import torch.nn as nn
-from torchvision._internally_replaced_utils import load_state_dict_from_url
+from torch.hub import load_state_dict_from_url
+from typing import Any
 
 from src.models.init_weights import sensilla_init, V1_init, classical_init
 
@@ -119,7 +120,7 @@ def alexnet(pretrained: bool = False, structured: bool = False,
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
         structured (bool): If True, initialize with structured weights, 
-                           otherwise use classical (Kaiming He) init
+                           otherwise use classical (Gaussian) init
         progress (bool): If True, displays a progress bar of the download to stderr
     """
     
@@ -130,9 +131,9 @@ def alexnet(pretrained: bool = False, structured: bool = False,
         if isinstance(m, nn.Conv2d):
             if structured:
                 # idea: could make size & freq scale with conv dimensions
-                V1_init(m.weight, size=5, spatial_freq=2, bias=True)
+                V1_init(m, size=5, spatial_freq=2, bias=True)
             else:
-                classical_init(m.weight, bias=True)
+                classical_init(m, bias=True)
     
     model = AlexNet(**kwargs)
     model.apply(init_weights)
