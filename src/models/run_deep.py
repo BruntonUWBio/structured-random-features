@@ -34,7 +34,7 @@ parser.add_argument('-b', '--batch-size', default=256, type=int,
                     help='mini-batch size (default: 256), this is the total '
                          'batch size of all GPUs on the current node when '
                          'using Data Parallel or Distributed Data Parallel')
-parser.add_argument('--lr', '--learning-rate', default=0.1, type=float,
+parser.add_argument('--lr', '--learning-rate', default=0.01, type=float,
                     metavar='LR', help='initial learning rate', dest='lr')
 parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
                     help='momentum')
@@ -161,8 +161,8 @@ def main_worker(gpu, ngpus_per_node, args):
         # if args.arch.startswith('alexnet') or args.arch.startswith('vgg'):
         model.features = torch.nn.DataParallel(model.features)
         model.cuda()
-        else:
-            model = torch.nn.DataParallel(model).cuda()
+        # else:
+        #     model = torch.nn.DataParallel(model).cuda()
 
     # define loss function (criterion) and optimizer
     criterion = nn.CrossEntropyLoss().cuda(args.gpu)

@@ -129,11 +129,13 @@ def alexnet(pretrained: bool = False, structured: bool = False,
         Only update the Conv2d layers
         '''
         if isinstance(m, nn.Conv2d):
+            C_out, C_in, xdim, ydim = m.weight.shape
+            scale = 1 / (C_in * xdim ** 2 * ydim ** 2)
             if structured:
                 # idea: could make size & freq scale with conv dimensions
-                V1_init(m, size=5, spatial_freq=2, bias=True)
+                V1_init(m, size=5, spatial_freq=2, bias=True, scale=scale)
             else:
-                classical_init(m, bias=True)
+                classical_init(m, bias=True, scale=scale)
     
     model = AlexNet(**kwargs)
     model.apply(init_weights)
