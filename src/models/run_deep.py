@@ -18,6 +18,8 @@ import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 import networks as models
 
+import pandas as pd
+
 parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
 parser.add_argument('data', metavar='DIR',
                     help='path to dataset')
@@ -239,15 +241,16 @@ def main_worker(gpu, ngpus_per_node, args):
         adjust_learning_rate(optimizer, epoch, args)
 
         # train for one epoch
-        train(train_loader, model, criterion, optimizer, epoch, args)
+        train_loss, train_acc1, train_acc5 = \
+            train(train_loader, model, criterion, optimizer, epoch, args)
 
         # evaluate on validation set
-        acc1 = validate(val_loader, model, criterion, args)
+        val_loss, val_acc1, val_acc5 = validate(val_loader, model, criterion, args)
 
         # remember best acc@1 and save checkpoint
-        is_best = acc1 > best_acc1
-        best_acc1 = max(acc1, best_acc1)
-
+        is_best = val_acc1 > best_acc1
+        best_acc1 = max(val_acc1, best_acc1)
+        
         if not args.multiprocessing_distributed or (args.multiprocessing_distributed
                 and args.rank % ngpus_per_node == 0):
             save_checkpoint({
@@ -258,6 +261,22 @@ def main_worker(gpu, ngpus_per_node, args):
                 'best_acc1': best_acc1,
                 'optimizer' : optimizer.state_dict(),
             }, is_best)
+            # log losses & accuracies
+            save_data = pd.DataFrame({
+                'epoch': epoch + 1,
+                'arch': 'alexnet',
+                'structured': args.structured,
+                'train_loss': train_loss,
+                'train_acc1': float(train_acc1.cpu()),
+                'train_acc5': float(train_acc5.cpu()),
+                'val_loss': val_loss,
+                'val_acc1': float(val_acc1.cpu()),
+                'val_acc5': float(val_acc5.cpu()),
+                'best_acc1': float(best_acc1.cpu())
+            }, index=[epoch + 1])
+            output_file = 'training_log.csv'
+            save_data.to_csv(output_file, mode='a', index=False,
+                             header=not os.path.exists(output_file))
 
 
 def train(train_loader, model, criterion, optimizer, epoch, args):
@@ -306,6 +325,8 @@ def train(train_loader, model, criterion, optimizer, epoch, args):
         if i % args.print_freq == 0:
             progress.display(i)
 
+    return losses.avg, top1.avg, top5.avg
+
 
 def validate(val_loader, model, criterion, args):
     batch_time = AverageMeter('Time', ':6.3f')
@@ -349,7 +370,7 @@ def validate(val_loader, model, criterion, args):
         print(' * Acc@1 {top1.avg:.3f} Acc@5 {top5.avg:.3f}'
               .format(top1=top1, top5=top5))
 
-    return top1.avg
+    return losses.avg, top1.avg, top5.avg
 
 
 def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
