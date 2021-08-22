@@ -112,7 +112,7 @@ def V1_covariance_matrix(dim, size, spatial_freq, center, scale=1):
     covariance. This matrix will be used to generate random 
     features inspired from the receptive-fields of V1 neurons.
 
-    C(x, y) = exp(|x - y|^2/2 * spatial_freq) * exp(|x - m|^2/ (2 * size)) * exp(|y - m|^2/ (2 * size))
+    C(x, y) = exp(-|x - y|/(2 * spatial_freq))^2 * exp(-|x - m| / (2 * size))^2 * exp(-|y - m| / (2 * size))^2
 
     Parameters
     ----------
@@ -147,9 +147,9 @@ def V1_covariance_matrix(dim, size, spatial_freq, center, scale=1):
     a = squareform(pdist(grid, 'sqeuclidean'))
     b = la.norm(grid - center, axis=1) ** 2
     c = b.reshape(-1, 1)
-    C = np.exp(-a / (2 * spatial_freq ** 2)) * np.exp(-b / (2 * size ** 2)) * np.exp(-c / (2 * size ** 2))
-    C += 1e-5 * np.eye(dim[0] * dim[1])
-    C *= (scale * dim[0] * dim[1] / np.trace(C))
+    C = np.exp(-a / (2 * spatial_freq ** 2)) * np.exp(-b / (2 * size ** 2)) * np.exp(-c / (2 * size ** 2)) \
+        + 1e-5 * np.eye(dim[0] * dim[1])
+    C *= scale * dim[0] * dim[1] / np.trace(C)
     return C
 
 
@@ -279,7 +279,7 @@ def V1_weights(num_weights, dim, size, spatial_freq, center=None, scale=1, seed=
             W[i] = shift_pad(W_centered[i], y_shift, x_shift)
         W = W.reshape(-1, dim[0] * dim[1])
 
-    elif center != None:
+    elif center is not None:
         C = V1_covariance_matrix(dim, size, spatial_freq, center, scale)
         W = np.random.multivariate_normal(mean=np.zeros(dim[0] * dim[1]), cov=C, size=num_weights)
         

@@ -130,11 +130,15 @@ def alexnet(pretrained: bool = False, structured: bool = False,
         '''
         if isinstance(m, nn.Conv2d):
             C_out, C_in, xdim, ydim = m.weight.shape
-            scale = 1 / (C_in * xdim ** 2 * ydim ** 2)
-            if structured:
-                # idea: could make size & freq scale with conv dimensions
-                V1_init(m, size=5, spatial_freq=2, bias=True, scale=scale)
+            scale = 1. / (C_in * xdim * ydim) # variance propto conv2d default uniform scaling, 1 / fan_in
+            if structured and xdim == 11:
+                # size & freq may scale with conv dimensions
+                c = (xdim / 2, ydim / 2) # center of the visual field
+                s = float(max(xdim, ydim))
+                f = s / 5
+                V1_init(m, size=3 * s, spatial_freq=f, bias=True, scale=scale, center=c)
             else:
+                # variance = scale
                 classical_init(m, bias=True, scale=scale)
     
     model = AlexNet(**kwargs)

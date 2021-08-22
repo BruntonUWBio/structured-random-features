@@ -20,6 +20,8 @@ import networks as models
 
 import pandas as pd
 
+# torch.autograd.set_detect_anomaly(True)
+
 parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
 parser.add_argument('data', metavar='DIR',
                     help='path to dataset')
@@ -74,7 +76,7 @@ best_acc1 = 0
 
 def main():
     args = parser.parse_args()
-
+    
     if args.seed is not None:
         random.seed(args.seed)
         torch.manual_seed(args.seed)

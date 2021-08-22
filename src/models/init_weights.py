@@ -40,7 +40,8 @@ def sensilla_init(layer, lowcut, highcut, decay_coef=np.inf, scale=1, bias=False
     assert classname.find('Linear') != -1,'This init only works for Linear layers'
     out_features, in_features = layer.weight.shape
     sensilla_weight = sensilla_weights(out_features, in_features, lowcut, highcut, decay_coef, scale, seed)
-    layer.weight.data = Tensor(sensilla_weight)
+    with torch.no_grad():
+        layer.weight.copy_(Tensor(sensilla_weight))
     if bias == False:
         layer.bias = None
 
@@ -48,8 +49,7 @@ def sensilla_init(layer, lowcut, highcut, decay_coef=np.inf, scale=1, bias=False
 def V1_init(layer, size, spatial_freq, center=None, scale=1., bias=False, seed=None):
     """
     Initialize weights of a Conv2d layer according to receptive fields of V1.
-    Currently, only works when the number of input channels equals 1. The bias
-    is turned off.
+    The bias is turned off by default.
     
     Parameters
     ----------
@@ -79,12 +79,14 @@ def V1_init(layer, size, spatial_freq, center=None, scale=1., bias=False, seed=N
     assert classname.find('Conv2d') != -1, 'This init only works for Conv layers'
 
     out_channels, in_channels, xdim, ydim = layer.weight.shape
-    data = layer.weight.data.numpy()
+    data = layer.weight.data.numpy().copy()
     for chan in range(in_channels):
         W =  V1_weights(out_channels, (xdim, ydim),
                         size, spatial_freq, center, scale, seed=seed)
         data[:, chan, :, :] = W.reshape(out_channels, xdim, ydim)
-    layer.weight.data = Tensor(data)
+    data = Tensor(data)
+    with torch.no_grad():
+        layer.weight.copy_(data)
 
     if bias == False:
         layer.bias = None
@@ -93,9 +95,7 @@ def V1_init(layer, size, spatial_freq, center=None, scale=1., bias=False, seed=N
 def classical_init(layer, scale=1, bias=False, seed=None):
     """
     Inialize weights of a Linear layer or convolutional layer according to
-    GP with diagonal covariance. 
-    
-    The bias is turned off by default.
+    GP with diagonal covariance. The bias is turned off by default.
     
     Parameters
     ----------
@@ -119,15 +119,19 @@ def classical_init(layer, scale=1, bias=False, seed=None):
     if classname.find('Linear') == 1: 
         in_features, out_features = layer.weight.shape
         classical_weight = classical_weights(out_features, in_features, scale, seed)
-        layer.weight.data = Tensor(classical_weight)
+        data = Tensor(classical_weight)
+        with torch.no_grad():
+            layer.weight.copy_(data)
         
     elif classname.find('Conv2d') == 1:
         out_channels, in_channels, xdim, ydim = layer.weight.shape
-        data = layer.weight.data.numpy()
+        data = layer.weight.data.numpy().copy()
         for chan in range(in_channels):
             W = classical_weights(out_channels, (xdim, ydim), scale, seed=seed)
             data[:, chan, :, :] = W.reshape(out_channels, xdim, ydim)
-        layer.weight.data = Tensor(data)
+        data = Tensor(data)
+        with torch.no_grad():
+            layer.weight.copy_(data)
         
     if bias == False:
         layer.bias = None
