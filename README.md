@@ -60,7 +60,7 @@ Project Organization
 Steps to set up the directory:
 ------------
 
-1. Do a clean pull of the repository. Go inside the repo.
+1. Do a clean download of the repository. Go inside the repo.
         cd \path\to\random_features\
         
 2. Make a virtual Conda environment. We will be using python version 3.8.
@@ -72,8 +72,11 @@ Steps to set up the directory:
 4.  Run the make file to download all the datasets and preprocess.
          make data
          
-5.  The notebooks should work. 
+5.  Run the notebooks.  
 
 Remark: Always work in the newly created conda environment. Pls read the 
 cookiecutter docs for best practices. 
 
+
+Replicating our published findings
+------------
