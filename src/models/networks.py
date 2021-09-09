@@ -4,12 +4,13 @@ import torch.nn as nn
 from torch.hub import load_state_dict_from_url
 from typing import Any
 
-from src.models.init_weights import sensilla_init, V1_init, classical_init
+from src.models.init_weights import sensilla_init, V1_init, classical_init, V1_weights
 
 class V1_mnist_RFNet(nn.Module):
     """
     Random Feature network to classify MNIST images. The first layer is initialized from GP
-    with covariance inspired by V1.
+    with covariance inspired by V1. The layers are convolutional layers with kernels covering
+     the entire dataset.
     """
     def __init__(self, hidden_dim, size, spatial_freq, center=None, scale=1, bias=False, seed=None):
         super(V1_mnist_RFNet, self).__init__()
