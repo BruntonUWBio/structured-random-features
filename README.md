@@ -57,7 +57,9 @@ Project Organization
 <p><small>Project based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>. #cookiecutterdatascience</small></p>
 
 
-Steps:
+Steps to set up the directory:
+------------
+
 1. Do a clean pull of the repository. Go inside the repo.
         cd \path\to\random_features\
         
@@ -72,6 +74,6 @@ Steps:
          
 5.  The notebooks should work. 
 
-6. Before you install new package, git commit. Then, run to make sure it doesn’t break dependencies. If everything is well, add it to the requirements.txt file.
+Remark: Always work in the newly created conda environment. Pls read the 
+cookiecutter docs for best practices. 
 
-Remark: Always working in the newly created conda environment. Pls read the cookiecutter docs for best practices. 
