@@ -16,9 +16,9 @@ import torch.utils.data
 import torch.utils.data.distributed
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
-import networks as models
-
 import pandas as pd
+
+import networks as models
 
 # torch.autograd.set_detect_anomaly(True)
 

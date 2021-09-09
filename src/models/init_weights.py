@@ -46,7 +46,7 @@ def sensilla_init(layer, lowcut, highcut, decay_coef=np.inf, scale=1, bias=False
         layer.bias = None
 
 
-def V1_init(layer, size, spatial_freq, center=None, scale=1., bias=False, seed=None):
+def V1_init(layer, size, spatial_freq, center=None, scale=1., bias=False, seed=None, tied=False):
     """
     Initialize weights of a Conv2d layer according to receptive fields of V1.
     The bias is turned off by default.
@@ -80,9 +80,14 @@ def V1_init(layer, size, spatial_freq, center=None, scale=1., bias=False, seed=N
 
     out_channels, in_channels, xdim, ydim = layer.weight.shape
     data = layer.weight.data.numpy().copy()
-    for chan in range(in_channels):
+    # same weights for each channel
+    if tied:
         W =  V1_weights(out_channels, (xdim, ydim),
                         size, spatial_freq, center, scale, seed=seed)
+    for chan in range(in_channels):
+        if not tied:
+            W =  V1_weights(out_channels, (xdim, ydim),
+                            size, spatial_freq, center, scale, seed=seed)
         data[:, chan, :, :] = W.reshape(out_channels, xdim, ydim)
     data = Tensor(data)
     with torch.no_grad():
