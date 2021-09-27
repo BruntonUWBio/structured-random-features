@@ -1,4 +1,4 @@
-Random Features for neuronal tuning
+Structured random receptive fields
 ==============================
 
 This code generates the analyses in the paper "Structured random receptive fields enable informative sensory encodings".
@@ -10,6 +10,8 @@ We successfully model receptive fields datasets in two disparate
 sensory regions, insect mechanosensors and mammalian primary visual cortex (V1).
 Using our models, we also show a novel initialization scheme that improves
 the learning efficiency of artificial neural networks (ANNs).
+
+![framework](network.png)
 
 Steps to set up the directory:
 ------------
@@ -26,7 +28,7 @@ Steps to set up the directory:
 4.  Run the make file to download all the datasets and preprocess.
          make data
          
-5.  Run the notebooks.  
+5.  Run the notebooks in notebooks/reports folder.  
 
 Remark: Always work in the newly created conda environment. Please read the 
 cookiecutter docs for best practices. 
@@ -34,7 +36,24 @@ cookiecutter docs for best practices.
 
 Replicating our published findings
 ------------
-All the 
+- The source code is in the /src folder. The notebooks/reports contain the 
+analyses used in the paper. 
+
+- Notebooks 1-5 show how we fit our covariance models to biological data. 
+
+- Notebooks 6 and 7 show the time-series classification tasks.
+
+- Notebooks 9, 11, 12 and 13 show the digit classification tasks. The _estimator
+tag means we classify using an sklearn SVM. The _torch tag means we solve by
+using gradient descent on the SVM loss.  In the paper, we show results from
+the _estimator notebooks.
+
+- Notebooks 15-16 show our results from initializing networks using structured
+random features.
+
+- Notebooks 10.xx are used to plot the figures shown in the paper. However, they
+do assume you have run the rest of the notebooks and saved them in models/results
+folder. 
 
 
 Project Organization
@@ -54,8 +73,8 @@ Project Organization
     ├── models             <- Results from trained models
     │
     ├── notebooks          <- Jupyter notebooks.
-    │                         
-    │                        
+    │   ├── exploratory    <- Used for exploratory purposes                          
+    │   ├── reports        <- Final analyses                
     │
     ├── references         <- N/A
     │
