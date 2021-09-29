@@ -28,14 +28,14 @@ Steps to set up the directory:
 4.  Run the make file to download all the datasets and preprocess.
          make data
          
-5.  Run the notebooks in notebooks/reports folder.  
+5.  Run the notebooks in *notebooks/reports* folder.  
 
 Remark: Always work in the newly created conda environment.
 
 
 Replicating our published findings
 ------------
-- The source code is in the /src folder. The jupyter notebooks in /notebooks/reports 
+- The source code is in the */src* folder. The jupyter notebooks in */notebooks/reports* 
 folder show the analyses used in the paper. 
 
 - Notebooks 1--5 show how we fit our covariance models to biological data. We 
