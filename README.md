@@ -30,33 +30,32 @@ Steps to set up the directory:
          
 5.  Run the notebooks in notebooks/reports folder.  
 
-Remark: Always work in the newly created conda environment. Please read the 
-cookiecutter docs for best practices. 
+Remark: Always work in the newly created conda environment.
 
 
 Replicating our published findings
 ------------
-- The source code is in the /src folder. The notebooks/reports contain the 
-analyses used in the paper. 
+- The source code is in the /src folder. The jupyter notebooks in /notebooks/reports 
+folder show the analyses used in the paper. 
 
-- Notebooks 1-5 show how we fit our covariance models to biological data. 
+- Notebooks 1--5 show how we fit our covariance models to biological data. We 
+plot these results in Notebooks 16.0--16.4.
 
-- Notebooks 6 and 7 show the time-series classification tasks.
+- Notebooks 6 and 7 show the results on the time-series classification tasks. We
+plot these results in Notebook 16.5.
 
-- Notebooks 9, 11, 12 and 13 show the digit classification tasks. The _estimator
-tag means we classify using an sklearn SVM. The _torch tag means we solve by
-using gradient descent on the SVM loss.  In the paper, we show results from
-the _estimator notebooks.
+- Notebooks 8--11 show the results on the digit classification tasks. We plot these
+results in Notebook 16.6.
 
-- Notebooks 15-16 show our results from initializing networks using structured
-random features.
+- Notebooks 12--15 show our classification performance when initializing networks 
+with structured random features. We plot these results in Notebook 16.7 and 16.8
 
-- Notebooks 10.xx are used to plot the figures shown in the paper. However, they
-do assume you have run the rest of the notebooks and saved them in models/results
-folder. 
+- Notebooks 16.xx are used to plot the figures shown in the paper. They
+assume that you have run the relevant notebooks and saved the results. 
 
 
 Project Organization
+This project structure is based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>.
 ------------
 
     ├── LICENSE
@@ -74,7 +73,7 @@ Project Organization
     │
     ├── notebooks          <- Jupyter notebooks.
     │   ├── exploratory    <- Used for exploratory purposes                          
-    │   ├── reports        <- Final analyses                
+    │   ├── reports        <- Final analyses show in the paper               
     │
     ├── references         <- N/A
     │
@@ -100,5 +99,3 @@ Project Organization
 
 
 --------
-
-<p><small>Project structure is based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>. #cookiecutterdatascience</small></p>
