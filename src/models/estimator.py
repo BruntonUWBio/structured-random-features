@@ -203,9 +203,6 @@ class RFClassifier(BaseEstimator, ClassifierMixin):
         return score
         
 
-
-    
-
 def relu(x, thrsh=0):
     """
     Rectified Linear Unit

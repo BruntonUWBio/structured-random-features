@@ -317,3 +317,50 @@ def classical_weights(num_weights, dim, scale=1, seed=None):
     elif type(dim) is int:
         W = np.random.multivariate_normal(mean=np.zeros(dim), cov=C, size=num_weights)
     return W
+
+
+def V1_weights_for_plotting(num_weights, dim, size, spatial_freq, center, scale=1, random_state=None):
+    """
+    Generates random weights for one given center by sampling a 
+    non-stationary Gaussian Process. 
+    
+    Note: This is only used for plotting because it fixes the random normal 
+    vectors. We can vary the covariance params and see the effects. For 
+    classification, use V1_weighs function above. 
+
+    Parameters
+    ----------
+
+    num_weights : int
+        Number of random weights
+
+    dim : tuple of shape (2,1)
+        dim of each random weights
+    
+    size : float
+        Determines the size of the random weights
+
+    spatial_freq : float
+        Determines the spatial frequency of the random weights 
+
+    center: tuple of shape (2, 1)
+        Location of the center of the random weights
+
+    scale: float, default=1
+        Normalization factor for Tr norm of cov matrix
+
+    seed : int, default=None
+        Used to set the seed when generating random weights.
+
+    Returns
+    -------
+
+    W : (array-like) of shape (num_weights, dim)
+        Random weights
+    """
+    np.random.seed(random_state) 
+    K = V1_covariance_matrix(dim, size, spatial_freq, center, scale=1)
+    L = la.cholesky(K)
+    W = np.dot(L, np.random.randn(dim[0] * dim[1], num_weights)).T
+    return W
+
