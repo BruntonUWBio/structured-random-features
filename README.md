@@ -17,7 +17,9 @@ Steps to set up the directory:
 ------------
 
 1. Do a clean download of the repository. Go inside the repo.
-        cd \path\to\random_features\
+	```
+        cd \path\to\structured_random_features\
+	```
         
 2. Make a virtual Conda environment. We will be using python version 3.8.
 
