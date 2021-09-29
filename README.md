@@ -39,7 +39,7 @@ Steps to set up the directory:
          
 5.  Run the notebooks in *notebooks/reports* folder.  
 
-Remark: Always work in the newly created conda environment.
+__Remark__: Always work in the newly created conda environment.
 
 
 Replicating our published findings
