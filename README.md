@@ -20,25 +20,18 @@ Steps to set up the directory:
 	```
         cd \path\to\structured_random_features\
 	```
-        
 2. Make a virtual Conda environment. We will be using python version 3.8.
-
 	```
 	conda create --name random_features python=3.8
 	```
-
 3. Activate the new conda environment
-	
 	```
 	conda activate random_features
 	```
-	
 4.  Run the make file to download all the datasets and preprocess.
-	
 	```
          make data
 	 ```
-         
 5.  Run the notebooks in *notebooks/reports* folder.  
 
 __Remark__: Always work in the newly created conda environment.
