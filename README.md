@@ -2,7 +2,7 @@ Structured random receptive fields
 ==============================
 
 This code generates the analyses in the paper "Structured random receptive fields enable informative sensory encodings".
-https://www.biorxiv.org/content/10.1101/2021.09.09.459651v2.full
+https://www.biorxiv.org/content/10.1101/2021.09.09.459651
 
 __Summary__: In this work, we describe an approach to model receptive fields
 of biological neurons as samples from Gaussian Processes (GP).
