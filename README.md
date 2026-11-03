@@ -18,23 +18,38 @@ Steps to set up the directory:
 
 1. Do a clean download of the repository. Go inside the repo.
 	```
-        cd \path\to\structured_random_features\
+	cd /path/to/structured-random-features/
 	```
-2. Make a virtual Conda environment. We will be using python version 3.8.
+2. Make a virtual environment with [uv](https://docs.astral.sh/uv/). We have tested Python 3.10.
 	```
-	conda create --name random_features python=3.8
+	uv venv --python 3.10
 	```
-3. Activate the new conda environment
+3. Activate the new environment
 	```
-	conda activate random_features
+	source .venv/bin/activate
 	```
-4.  Run the make file to download all the datasets and preprocess.
+4.  Install the package and the notebook tools.
 	```
-         make data
-	 ```
-5.  Run the notebooks in *notebooks/reports* folder.  
+	uv pip install -e .
+	uv pip install -r requirements.txt
+	```
+5.  Download all the datasets and preprocess. The Makefile calls `python3 -m pip`, which a uv environment does not include, so install pip into it first.
+	```
+	uv pip install pip
+	make data
+	```
+6.  Run the notebooks in *notebooks/reports* folder.
 
-__Remark__: Always work in the newly created conda environment.
+__Choosing a torch build__: to select a specific CUDA or CPU build of torch, pass uv's backend flag at install time, e.g.
+```
+uv pip install -e . --torch-backend cpu
+```
+(other values: `cu126`, `auto`, ...). Alternatively, install the desired torch and torchvision first
+(e.g. `uv pip install torch==2.4.* torchvision --index-url https://download.pytorch.org/whl/cu121`)
+and then run `uv pip install -e .`, which leaves them untouched. Do this before step 4, since
+`requirements.txt` otherwise installs the default build.
+
+__Remark__: Always work in the newly created virtual environment.
 
 
 Replicating our published findings

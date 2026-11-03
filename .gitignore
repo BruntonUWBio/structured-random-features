@@ -95,3 +95,6 @@ reports/figures/
 
 # Mypy cache
 .mypy_cache/
+
+# uv virtual environment
+.venv/
