@@ -30,7 +30,7 @@ def load_sensilla_sta():
         Length of time for the STA (seconds) 
     """
     data_path = data_dir + 'STA_sensilla.pickle'
-    assert path.exists(data_path), 'STA data doesnt exist in data/processed. Check src/data/processing.py'
+    assert path.exists(data_path), 'STA data doesnt exist in data/processed. Check structured_random_features/data/preprocessing.py'
     outputs = np.load(data_path, allow_pickle=True)
     return outputs['STA'], outputs['sample_rate'], outputs['sta_time_window']
 
@@ -60,7 +60,7 @@ def load_V1_whitenoise(centered=True):
         
     '''
     data_path = data_dir + 'rf_whitenoise{}.pickle'.format('_centered' * centered)
-    assert path.exists(data_path), '{} RF data doesnt exist in data/processed. Check src/data/processing.py'.format('Centered' * centered)
+    assert path.exists(data_path), '{} RF data doesnt exist in data/processed. Check structured_random_features/data/preprocessing.py'.format('Centered' * centered)
     outputs = np.load(data_path, allow_pickle=True)
     return outputs['rf'], outputs['snr'], (outputs['xdim'], outputs['ydim'])
 
@@ -89,7 +89,7 @@ def load_V1_DHT(centered=True):
         
     '''
     data_path = data_dir + 'rf_DHT{}.pickle'.format('_centered' * centered)
-    assert path.exists(data_path), '{} RF data doesnt exist in data/processed. Check src/data/processing.py'.format('Centered' * centered)
+    assert path.exists(data_path), '{} RF data doesnt exist in data/processed. Check structured_random_features/data/preprocessing.py'.format('Centered' * centered)
     outputs = np.load(data_path, allow_pickle=True)
     return outputs['rf'], outputs['snr'], (outputs['xdim'], outputs['ydim'])
 
@@ -119,7 +119,7 @@ def load_V1_natural_images(centered=True):
         
     '''
     data_path = data_dir + 'rf_natural_images{}.pickle'.format('_centered' * centered)
-    assert path.exists(data_path), '{} RF data doesnt exist in data/processed. Check src/data/processing.py'.format('Centered' * centered)
+    assert path.exists(data_path), '{} RF data doesnt exist in data/processed. Check structured_random_features/data/preprocessing.py'.format('Centered' * centered)
     outputs = np.load(data_path, allow_pickle=True)
     return outputs['rf'], outputs['snr'], (outputs['xdim'], outputs['ydim'])
 
@@ -150,7 +150,7 @@ def load_V1_Ringach(centered=True):
         Receptive fields of 250 neurons
     """
     data_path = data_dir + 'rf_Ringach{}.pickle'.format('_centered' * centered)
-    assert path.exists(data_path), '{} RF data doesnt exist in data/processed. Check src/data/processing.py'.format('Centered' * centered)
+    assert path.exists(data_path), '{} RF data doesnt exist in data/processed. Check structured_random_features/data/preprocessing.py'.format('Centered' * centered)
     outputs = np.load(data_path, allow_pickle=True)
     return outputs['rf'], (outputs['xdim'], outputs['ydim'])
 

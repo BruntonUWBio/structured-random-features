@@ -4,7 +4,7 @@ import logging
 from pathlib import Path
 from dotenv import find_dotenv, load_dotenv
 
-import src.data.preprocessing as preprocess
+import structured_random_features.data.preprocessing as preprocess
 
 @click.command()
 @click.argument('input_filepath', type=click.Path(exists=True))

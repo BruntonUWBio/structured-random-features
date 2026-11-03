@@ -47,12 +47,12 @@ data: requirements
 	gdown -O data/raw/rf_natural_images_Marius.npz  https://drive.google.com/uc?id=1LfWqaQP-8AT2L5nc6dz_Ou-6sYWE-f80
 	gdown -O data/raw/rf_Ringach.mat  https://drive.google.com/uc?id=1at_Neu_p0pPCMhuSRwWmc9J1hAsPPiY7
 
-## Install the src package. This is our code.
+## Install the structured_random_features package. This is our code.
 # $(PYTHON_INTERPRETER) setup.py install
 	$(PYTHON_INTERPRETER) -m pip install -e .
 
 ## Preprocess datasets
-	$(PYTHON_INTERPRETER) src/data/make_dataset.py data/raw data/processed
+	$(PYTHON_INTERPRETER) structured_random_features/data/make_dataset.py data/raw data/processed
 
 ## Delete all compiled Python files
 clean:
@@ -61,7 +61,7 @@ clean:
 
 ## Lint using flake8
 lint:
-	flake8 src
+	flake8 structured_random_features
 
 ## Upload Data to S3
 sync_data_to_s3:

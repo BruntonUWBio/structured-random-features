@@ -8,7 +8,7 @@ import torch.nn as nn
 import seaborn as sns
 
 sys.path.append('../models')
-from networks import alexnet
+from structured_random_features.models.networks import alexnet
 
 model_fn = '../models/checkpoints_structured/model_best.pth.tar'
 

@@ -4,7 +4,7 @@ import torch.nn as nn
 from torch.hub import load_state_dict_from_url
 from typing import Any
 
-from src.models.init_weights import sensilla_init, V1_init, classical_init, V1_weights
+from structured_random_features.models.init_weights import sensilla_init, V1_init, classical_init, V1_weights
 
 class V1_mnist_RFNet(nn.Module):
     """
