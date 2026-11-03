@@ -16,37 +16,50 @@ the learning efficiency of artificial neural networks (ANNs).
 Steps to set up the directory:
 ------------
 
+The steps below use either [uv](https://docs.astral.sh/uv/) or plain pip. We have tested Python 3.10.
+
 1. Do a clean download of the repository. Go inside the repo.
 	```
 	cd /path/to/structured-random-features/
 	```
-2. Make a virtual environment with [uv](https://docs.astral.sh/uv/). We have tested Python 3.10.
-	```
-	uv venv --python 3.10
-	```
+2. Make a virtual environment.
+
+	| uv | pip |
+	|---|---|
+	| `uv venv --python 3.10` | `python3 -m venv .venv` |
+
 3. Activate the new environment
 	```
 	source .venv/bin/activate
 	```
 4.  Install the package and the notebook tools.
-	```
-	uv pip install -e .
-	uv pip install -r requirements.txt
-	```
+
+	| uv | pip |
+	|---|---|
+	| `uv pip install -e .` | `pip install -e .` |
+	| `uv pip install -r requirements.txt` | `pip install -r requirements.txt` |
+
 5.  Download all the datasets and preprocess.
-	```
-	make data
-	```
+
+	| uv | pip |
+	|---|---|
+	| `make data PIP="uv pip"` | `make data` |
+
 6.  Run the notebooks in *notebooks/reports* folder.
 
-__Choosing a torch build__: to select a specific CUDA or CPU build of torch, pass uv's backend flag at install time, e.g.
+__Choosing a torch build__: install the desired torch and torchvision *before* step 4, since
+`requirements.txt` otherwise installs the default build. The later `-e .` install leaves them untouched.
 ```
-uv pip install -e . --torch-backend cpu
+# pip
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121   # or .../cpu
+# uv
+uv pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
 ```
-(other values: `cu126`, `auto`, ...). Alternatively, install the desired torch and torchvision first
-(e.g. `uv pip install torch==2.4.* torchvision --index-url https://download.pytorch.org/whl/cu121`)
-and then run `uv pip install -e .`, which leaves them untouched. Do this before step 4, since
-`requirements.txt` otherwise installs the default build.
+With uv you can instead pass its backend flag at install time: `uv pip install -e . --torch-backend cpu`
+(other values: `cu126`, `auto`, ...).
+
+__Remark__: Always work in the newly created virtual environment (a conda environment also works with the pip commands).
+
 
 Replicating our published findings
 ------------

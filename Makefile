@@ -9,6 +9,8 @@ BUCKET = [OPTIONAL] your-bucket-for-syncing-data (do not include 's3://')
 PROFILE = default
 PROJECT_NAME = random_features_refactored
 PYTHON_INTERPRETER = python3
+# Installer used for dependencies. Override with `make data PIP="uv pip"` for uv.
+PIP ?= $(PYTHON_INTERPRETER) -m pip
 
 ifeq (,$(shell which conda))
 HAS_CONDA=False
@@ -22,7 +24,7 @@ endif
 
 ## Install Python Dependencies
 requirements: test_environment
-	uv pip install -r requirements.txt
+	$(PIP) install -r requirements.txt
 
 ## Make Dataset
 data: requirements
@@ -48,7 +50,7 @@ data: requirements
 
 ## Install the structured_random_features package. This is our code.
 # $(PYTHON_INTERPRETER) setup.py install
-	uv pip install -e .
+	$(PIP) install -e .
 
 ## Preprocess datasets
 	$(PYTHON_INTERPRETER) structured_random_features/data/make_dataset.py data/raw data/processed
