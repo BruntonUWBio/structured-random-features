@@ -33,9 +33,8 @@ Steps to set up the directory:
 	uv pip install -e .
 	uv pip install -r requirements.txt
 	```
-5.  Download all the datasets and preprocess. The Makefile calls `python3 -m pip`, which a uv environment does not include, so install pip into it first.
+5.  Download all the datasets and preprocess.
 	```
-	uv pip install pip
 	make data
 	```
 6.  Run the notebooks in *notebooks/reports* folder.
@@ -48,9 +47,6 @@ uv pip install -e . --torch-backend cpu
 (e.g. `uv pip install torch==2.4.* torchvision --index-url https://download.pytorch.org/whl/cu121`)
 and then run `uv pip install -e .`, which leaves them untouched. Do this before step 4, since
 `requirements.txt` otherwise installs the default build.
-
-__Remark__: Always work in the newly created virtual environment.
-
 
 Replicating our published findings
 ------------
@@ -71,6 +67,3 @@ with structured random features. We plot these results in Notebook 16.7 and 16.8
 
 - Notebooks 16.xx are used to plot the figures shown in the paper. They
 assume that you have run the relevant notebooks and saved the results. 
-
-
-__Remark__: This project structure is based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>.

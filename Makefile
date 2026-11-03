@@ -22,8 +22,7 @@ endif
 
 ## Install Python Dependencies
 requirements: test_environment
-	$(PYTHON_INTERPRETER) -m pip install -U pip setuptools wheel
-	$(PYTHON_INTERPRETER) -m pip install -r requirements.txt
+	uv pip install -r requirements.txt
 
 ## Make Dataset
 data: requirements
@@ -49,7 +48,7 @@ data: requirements
 
 ## Install the structured_random_features package. This is our code.
 # $(PYTHON_INTERPRETER) setup.py install
-	$(PYTHON_INTERPRETER) -m pip install -e .
+	uv pip install -e .
 
 ## Preprocess datasets
 	$(PYTHON_INTERPRETER) structured_random_features/data/make_dataset.py data/raw data/processed
