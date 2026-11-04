@@ -2,7 +2,7 @@ Structured random receptive fields
 ==============================
 
 This code generates the analyses in the paper "Structured random receptive fields enable informative sensory encodings" 
-([biorxiv preprint](https://www.biorxiv.org/content/10.1101/2021.09.09.459651), published in PLoS Comp Bio.
+([biorxiv preprint](https://www.biorxiv.org/content/10.1101/2021.09.09.459651)), published in PLoS Comp Bio.
 
 __Summary__: In this work, we describe an approach to model receptive fields
 of biological neurons as samples from Gaussian Processes (GP).
@@ -54,6 +54,10 @@ uv pip install torch torchvision --index-url https://download.pytorch.org/whl/cu
 ```
 With uv you can instead pass its backend flag at install time: `uv pip install -e . --torch-backend cpu`
 (other values: `cu126`, `auto`, ...).
+
+Data sources
+------------
+The data for our analyses can be found in this [Google drive folder](https://drive.google.com/drive/folders/1XLfnikdNjnUTT87RBCMGJFa42N-ZfHKO?usp=sharing). 
 
 Replicating our published findings
 ------------
