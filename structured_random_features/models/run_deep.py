@@ -18,7 +18,7 @@ import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 import pandas as pd
 
-import networks as models
+from structured_random_features.models import networks as models
 
 # torch.autograd.set_detect_anomaly(True)
 

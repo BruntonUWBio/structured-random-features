@@ -77,7 +77,7 @@ class RFClassifier(BaseEstimator, ClassifierMixin):
 
     from sklearn.datasets import load_digits
     from sklearn.linear_model import LogisticRegression
-    from estimator import RFClassifier, V1_inspired_weights
+    from structured_random_features.models.estimator import RFClassifier, V1_inspired_weights
 
     X, y = load_digits(return_X_y=True)
     logit = LogisticRegression(solver='saga')

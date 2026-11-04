@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 from torch import Tensor
 
-from src.models.weights import sensilla_weights, V1_weights, classical_weights
+from structured_random_features.models.weights import sensilla_weights, V1_weights, classical_weights
 
 def sensilla_init(layer, lowcut, highcut, decay_coef=np.inf, scale=1, bias=False, seed=None):
     """
